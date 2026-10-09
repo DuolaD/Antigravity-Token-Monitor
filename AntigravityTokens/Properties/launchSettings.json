@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AntigravityTokens (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "AntigravityTokens (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

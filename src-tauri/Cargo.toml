@@ -1,0 +1,32 @@
+[package]
+name = "antigravity-tokens"
+version = "1.0.0"
+description = "Antigravity Token Monitor & Cost Calculator"
+authors = ["DuolaD"]
+edition = "2021"
+
+[lib]
+name = "antigravity_tokens_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+regex = "1.11"
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5.0"
+notify = "6.1"
+urlencoding = "2.1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

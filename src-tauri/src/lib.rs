@@ -84,5 +84,59 @@ mod tests {
         assert!(!data.monitored_directories.is_empty(), "Should discover local antigravity directories");
         assert!(stats.total_calls > 0, "Should successfully parse local conversation calls");
     }
+
+    #[test]
+    fn test_pricing_defaults_and_matching() {
+        let pricing = PricingService::new_defaults_only();
+
+        // 1. Exact match with lowercase
+        let (cost_flash, cur) = pricing.calculate_cost(1_000_000, 1_000_000, "gemini-3.8-flash");
+        assert_eq!(cur, "USD");
+        assert!((cost_flash - 4.50).abs() < 1e-4, "Prompt $0.75 + Output $3.75 should be $4.50");
+
+        // 2. Case-insensitive exact match
+        let (cost_flash_mixed, _) = pricing.calculate_cost(1_000_000, 1_000_000, "Gemini-3.8-Flash");
+        assert!((cost_flash_mixed - 4.50).abs() < 1e-4, "Mixed case should match exact model rate");
+
+        // 3. Fallback heuristic for unlisted flash variant
+        let (cost_flash_n, _) = pricing.calculate_cost(1_000_000, 1_000_000, "gemini-3.8-flash-n");
+        assert!((cost_flash_n - 4.50).abs() < 1e-4, "Unlisted flash variant should match flash rate");
+
+        // 4. Claude 3.5 Sonnet mixed case
+        let (cost_sonnet, _) = pricing.calculate_cost(1_000_000, 1_000_000, "Claude-3-5-Sonnet");
+        assert!((cost_sonnet - 18.00).abs() < 1e-4, "Prompt $3.00 + Output $15.00 should be $18.00");
+
+        // 5. Claude Opus thinking
+        let (cost_opus, _) = pricing.calculate_cost(1_000_000, 1_000_000, "claude-opus-4-6-thinking");
+        assert!((cost_opus - 30.00).abs() < 1e-4, "Prompt $5.00 + Output $25.00 should be $30.00");
+    }
+
+    #[test]
+    fn test_csharp_pascal_case_json_compatibility() {
+        let csharp_json = r#"{
+            "Settings": {
+                "Currency": "CNY",
+                "UsdToCnyRate": 6.711
+            },
+            "Pricing": [
+                {
+                    "ModelId": "gemini-3.8-flash",
+                    "DisplayName": "Gemini 3.8 Flash",
+                    "PromptPricePerMillion": 0.75,
+                    "OutputPricePerMillion": 3.75
+                }
+            ]
+        }"#;
+
+        let parsed: Result<crate::models::PricingConfig, _> = serde_json::from_str(csharp_json);
+        assert!(parsed.is_ok(), "Should parse C# PascalCase JSON successfully");
+        let cfg = parsed.unwrap();
+        assert_eq!(cfg.settings.currency, "CNY");
+        assert!((cfg.settings.usd_to_cny_rate - 6.711).abs() < 1e-4);
+        assert_eq!(cfg.pricing.len(), 1);
+        assert_eq!(cfg.pricing[0].model_id, "gemini-3.8-flash");
+        assert!((cfg.pricing[0].prompt_price_per_million - 0.75).abs() < 1e-4);
+        assert!((cfg.pricing[0].output_price_per_million - 3.75).abs() < 1e-4);
+    }
 }
 

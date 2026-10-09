@@ -2,15 +2,21 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelPricing {
+    #[serde(alias = "ModelId")]
     pub model_id: String,
+    #[serde(alias = "DisplayName")]
     pub display_name: String,
+    #[serde(alias = "PromptPricePerMillion")]
     pub prompt_price_per_million: f64,
+    #[serde(alias = "OutputPricePerMillion")]
     pub output_price_per_million: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PricingSettings {
+    #[serde(alias = "Currency")]
     pub currency: String, // "USD" or "CNY"
+    #[serde(alias = "UsdToCnyRate")]
     pub usd_to_cny_rate: f64,
 }
 
@@ -25,7 +31,9 @@ impl Default for PricingSettings {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PricingConfig {
+    #[serde(alias = "Settings")]
     pub settings: PricingSettings,
+    #[serde(alias = "Pricing")]
     pub pricing: Vec<ModelPricing>,
 }
 

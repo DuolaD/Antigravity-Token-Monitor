@@ -99,6 +99,20 @@ bun run tauri build --target x86_64-apple-darwin
 
 ---
 
+## 常見問題
+
+### macOS 提示「應用程式已損毀」或無法開啟？
+
+由於本專案為開源建置、尚未進行 Apple 開發者憑證簽名與公證（Notarization），macOS Gatekeeper 安全機制可能會攔截並提示「應用程式已損毀，您應該將它丟到垃圾桶」或「無法打開，因為無法驗證開發者」。
+
+**解決方法**：將應用程式拖入「應用程式（Applications）」資料夾後，開啟終端機（Terminal）執行以下命令移除隔離屬性即可正常開啟：
+
+```bash
+sudo xattr -r -d com.apple.quarantine "/Applications/Antigravity Tokens.app"
+```
+
+---
+
 ## 致謝
 
 本專案基於 [CherySui@AntigravityTokens](https://github.com/CherySui/AntigravityTokens) 重構並開發，在此感謝原作者的貢獻。

@@ -99,6 +99,20 @@ The repository includes a multi-architecture workflow at [`.github/workflows/rel
 
 ---
 
+## FAQ
+
+### macOS prompts that the app "is damaged and can't be opened"?
+
+Because this open-source build is not signed with an Apple Developer ID certificate or notarized, macOS Gatekeeper may block the app and display an alert like `"Antigravity Tokens" is damaged and should be moved to the Trash` or `cannot be opened because the developer cannot be verified`.
+
+**Solution**: Drag the app into your `/Applications` folder, open Terminal, and run the following command to remove the quarantine attribute:
+
+```bash
+sudo xattr -r -d com.apple.quarantine "/Applications/Antigravity Tokens.app"
+```
+
+---
+
 ## Acknowledgments
 
 This project is refactored and developed based on [CherySui@AntigravityTokens](https://github.com/CherySui/AntigravityTokens). Thanks to the original author for their contributions.

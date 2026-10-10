@@ -99,6 +99,12 @@ bun run tauri build --target x86_64-apple-darwin
 
 ---
 
+## 致謝
+
+本專案基於 [CherySui@AntigravityTokens](https://github.com/CherySui/AntigravityTokens) 重構並開發，在此感謝原作者的貢獻。
+
+---
+
 ## 開源授權
 
 本專案採用 [MIT](LICENSE) 授權條款開源。

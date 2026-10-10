@@ -99,6 +99,12 @@ The repository includes a multi-architecture workflow at [`.github/workflows/rel
 
 ---
 
+## Acknowledgments
+
+This project is refactored and developed based on [CherySui@AntigravityTokens](https://github.com/CherySui/AntigravityTokens). Thanks to the original author for their contributions.
+
+---
+
 ## License
 
 This project is licensed under the [MIT](LICENSE) license.

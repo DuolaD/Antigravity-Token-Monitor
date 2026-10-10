@@ -9,7 +9,7 @@ import process from "node:process";
  */
 export function parseTagAndVersion(rawInput, fallbackVersion = "1.0.0") {
   const raw = (rawInput || "").trim();
-  if (!raw) {
+  if (!raw || /^(main|master|head|develop)$/i.test(raw)) {
     return { tag: `v${fallbackVersion}`, version: fallbackVersion };
   }
 

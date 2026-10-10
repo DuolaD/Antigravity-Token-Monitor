@@ -42,7 +42,7 @@ jobs:
             RAW_TAG="${{ github.event.release.tag_name }}"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             RAW_TAG="${{ inputs.tag_name }}"
-            if [ -z "$RAW_TAG" ]; then
+            if [ -z "$RAW_TAG" ] && [ "${{ github.ref_type }}" = "tag" ]; then
               RAW_TAG="${{ github.ref_name }}"
             fi
           elif [ "${{ github.event_name }}" = "push" ]; then
@@ -108,6 +108,7 @@ jobs:
         with:
           name: macos-${{ matrix.name }}-dmg
           path: artifacts/*.dmg
+          if-no-files-found: warn
 
   build-windows:
     name: Build Windows (${{ matrix.target }})
@@ -135,11 +136,10 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Setup MSVC for ARM64 Cross-compilation
-        if: matrix.target == 'aarch64-pc-windows-msvc'
+      - name: Setup MSVC developer environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: arm64
+          arch: ${{ matrix.target == 'aarch64-pc-windows-msvc' && 'x64_arm64' || 'x64' }}
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
@@ -156,9 +156,12 @@ jobs:
         run: bun install
 
       - name: Build Tauri Bundle
-        shell: bash
         run: |
-          bun run tauri build --target ${{ matrix.target }}
+          if ("${{ matrix.target }}" -eq "aarch64-pc-windows-msvc") {
+            bun run tauri build --target ${{ matrix.target }} --bundles nsis
+          } else {
+            bun run tauri build --target ${{ matrix.target }}
+          }
 
       - name: Locate & Collect Windows Artifacts
         shell: bash
@@ -179,6 +182,7 @@ jobs:
         with:
           name: windows-${{ matrix.name }}
           path: artifacts/*
+          if-no-files-found: warn
 
   publish-release:
     name: Publish GitHub Release
@@ -195,10 +199,14 @@ jobs:
           path: release-assets/
           merge-multiple: true
 
-      - name: List Release Files
+      - name: Verify & List Release Files
         run: |
           echo "=== Collected Release Binaries for ${{ needs.prepare.outputs.tag }} ==="
           ls -la release-assets/
+          if [ -z "$(ls -A release-assets/ 2>/dev/null)" ]; then
+            echo "::error::No build artifacts found in release-assets/ to upload!"
+            exit 1
+          fi
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
@@ -206,6 +214,7 @@ jobs:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: ${{ github.event_name != 'release' && format('Antigravity Tokens {0}', needs.prepare.outputs.tag) || '' }}
           files: release-assets/*
+          fail_on_unmatched_files: false
           generate_release_notes: ${{ github.event_name != 'release' }}
           draft: false
           prerelease: false

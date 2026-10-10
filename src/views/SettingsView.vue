@@ -370,6 +370,29 @@
           {{ t('settings.about.version', { version: settings.app_version }) }}
         </p>
       </div>
+
+      <!-- Project Homepage Section -->
+      <div class="pt-3 border-t border-gray-100 dark:border-gray-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center text-gray-700 dark:text-gray-300 shadow-2xs">
+            <Github class="w-4 h-4" />
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-800 dark:text-gray-200">{{ t('settings.about.homepage') }}</div>
+            <div class="text-[11px] font-mono text-gray-400 dark:text-gray-500">{{ PROJECT_HOMEPAGE_URL }}</div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          @click="openProjectHomepage"
+          class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200/60 dark:border-blue-800/60 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+          :title="t('settings.about.homepageTooltip')"
+        >
+          <span>{{ t('settings.about.viewOnGithub') }}</span>
+          <ExternalLink class="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -385,6 +408,8 @@ import {
   CheckCircle2,
   Info,
   Globe,
+  Github,
+  ExternalLink,
 } from "lucide-vue-next";
 import type { SystemSettingsInfo } from "../types";
 import { themeMode, activeTheme, setThemeMode, type ThemeMode } from "../services/theme";
@@ -395,6 +420,7 @@ import {
   setLanguageMode,
   type LanguageMode,
 } from "../services/i18n";
+import { openProjectHomepage, PROJECT_HOMEPAGE_URL } from "../services/appInfo";
 
 const settings = reactive<SystemSettingsInfo>({
   monitored_paths: [],

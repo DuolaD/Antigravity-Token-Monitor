@@ -32,6 +32,10 @@ export const messages = {
         en: "English",
         tooltip: "点击切换显示语言",
       },
+      homepage: {
+        label: "项目主页",
+        tooltip: "访问 GitHub 开源项目主页",
+      },
       liveStatus: {
         active: "实时探测监听中",
         desc: "毫秒级捕获 SQLite WAL 变更",
@@ -221,6 +225,9 @@ export const messages = {
         desc: "专为 Google Antigravity 设计的原生 Token 计量与费用监控客户端",
         platform: "运行平台: {os} | 架构核心: Tauri v2 + Rust 高性能底层",
         version: "版本: v{version} (轻量版 · 内存占用超低 · 跨平台通用)",
+        homepage: "项目主页",
+        viewOnGithub: "访问 GitHub 仓库",
+        homepageTooltip: "在浏览器中打开项目主页",
       },
     },
     chart: {
@@ -263,6 +270,10 @@ export const messages = {
         zhTW: "繁體中文",
         en: "English",
         tooltip: "點擊切換顯示語言",
+      },
+      homepage: {
+        label: "專案首頁",
+        tooltip: "前往 GitHub 開源專案首頁",
       },
       liveStatus: {
         active: "即時探測監聽中",
@@ -453,6 +464,9 @@ export const messages = {
         desc: "專為 Google Antigravity 設計的原生 Token 計量與費用監控用戶端",
         platform: "運行平台: {os} | 架構核心: Tauri v2 + Rust 高效能底層",
         version: "版本: v{version} (輕量版 · 記憶體佔用超低 · 跨平台通用)",
+        homepage: "專案首頁",
+        viewOnGithub: "前往 GitHub 倉庫",
+        homepageTooltip: "在瀏覽器中開啟專案首頁",
       },
     },
     chart: {
@@ -495,6 +509,10 @@ export const messages = {
         zhTW: "繁體中文",
         en: "English",
         tooltip: "Click to toggle display language",
+      },
+      homepage: {
+        label: "Project Home",
+        tooltip: "Visit GitHub project homepage",
       },
       liveStatus: {
         active: "Live Monitoring Active",
@@ -685,6 +703,9 @@ export const messages = {
         desc: "Native token usage and cost monitoring client designed for Google Antigravity",
         platform: "Platform: {os} | Engine: Tauri v2 + Rust High-performance Engine",
         version: "Version: v{version} (Ultra-lightweight · Low memory · Cross-platform)",
+        homepage: "Project Homepage",
+        viewOnGithub: "Open GitHub Repository",
+        homepageTooltip: "Open project homepage in default browser",
       },
     },
     chart: {

@@ -33,8 +33,22 @@
         </nav>
       </div>
 
-      <!-- Footer: Quick Language, Theme Toggle & Real-time Live Badge -->
+      <!-- Footer: Quick Homepage, Language, Theme Toggle & Real-time Live Badge -->
       <div class="space-y-2">
+        <!-- Quick Project Homepage Button -->
+        <button
+          type="button"
+          @click="openProjectHomepage"
+          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200/80 dark:border-white/5 bg-gray-50/80 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-800/60 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors cursor-pointer group"
+          :title="t('app.homepage.tooltip')"
+        >
+          <div class="flex items-center gap-1.5">
+            <Github class="w-3.5 h-3.5 text-gray-700 dark:text-gray-300" />
+            <span class="text-[11px] font-medium">{{ t('app.homepage.label') }}</span>
+          </div>
+          <ExternalLink class="w-3 h-3 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors" />
+        </button>
+
         <!-- Quick Language Switcher Button -->
         <button
           type="button"
@@ -101,6 +115,8 @@ import {
   Moon,
   Laptop,
   Globe,
+  Github,
+  ExternalLink,
 } from "lucide-vue-next";
 
 import DashboardView from "./views/DashboardView.vue";
@@ -110,6 +126,7 @@ import PricingView from "./views/PricingView.vue";
 import SettingsView from "./views/SettingsView.vue";
 import { themeMode, activeTheme, setThemeMode } from "./services/theme";
 import { t, languageMode, currentLocale, setLanguageMode, type LanguageMode } from "./services/i18n";
+import { openProjectHomepage } from "./services/appInfo";
 
 const currentTab = ref("dashboard");
 

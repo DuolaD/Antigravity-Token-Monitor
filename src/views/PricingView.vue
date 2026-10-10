@@ -46,27 +46,79 @@
     </div>
 
     <!-- Currency & Exchange Rate Card -->
-    <div class="card-glass p-5 rounded-xl border border-white/5">
+    <div class="card-glass p-5 rounded-xl border border-white/5 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-800/80">
+        <div class="flex items-center gap-2">
+          <Globe class="w-4 h-4 text-sky-400" />
+          <h2 class="text-sm font-semibold text-gray-200">货币结算与多币种汇率管理</h2>
+        </div>
+        <button
+          @click="onSyncRates"
+          :disabled="isSyncingRates"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-950/80 hover:bg-sky-900/80 border border-sky-800/60 text-sky-300 hover:text-sky-100 text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
+          title="从网络拉取全球最新基准汇率 (Pages.dev 备用镜像优先，jsDelivr CDN 自动回退)"
+        >
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isSyncingRates }" />
+          <span>{{ isSyncingRates ? '正在同步汇率...' : '同步最新网络汇率' }}</span>
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="space-y-2">
-          <label class="text-xs font-semibold text-gray-300">结算币种 (Currency)</label>
+          <label class="text-xs font-semibold text-gray-300">结算显示币种 (Target Currency)</label>
           <select
             v-model="config.settings.currency"
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500"
+            @change="onCurrencyChange"
+            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-sans"
           >
-            <option value="USD">USD ($) 美元</option>
-            <option value="CNY">CNY (¥) 人民币</option>
+            <option
+              v-for="cur in SUPPORTED_CURRENCIES"
+              :key="cur.code"
+              :value="cur.code"
+            >
+              {{ cur.code }} ({{ cur.symbol }}) {{ cur.name }}
+            </option>
           </select>
         </div>
 
         <div class="space-y-2">
-          <label class="text-xs font-semibold text-gray-300">USD / CNY 换算汇率</label>
-          <input
-            v-model.number="config.settings.usd_to_cny_rate"
-            type="number"
-            step="0.05"
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
-          />
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-gray-300">
+              1 USD 兑 {{ config.settings.currency }} 换算汇率
+            </label>
+            <span class="text-[10px] text-gray-500 font-mono">
+              {{ config.settings.currency === 'USD' ? '基准货币 (1.0000)' : '支持手动覆盖调整' }}
+            </span>
+          </div>
+
+          <div class="relative">
+            <input
+              v-if="config.settings.currency === 'USD'"
+              value="1.0000"
+              disabled
+              type="text"
+              class="w-full bg-gray-900/40 border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-400 font-mono cursor-not-allowed"
+            />
+            <input
+              v-else
+              :value="currentExchangeRate"
+              @input="onExchangeRateInput"
+              type="number"
+              step="0.0001"
+              class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Sync Status & Info -->
+      <div class="pt-2 flex flex-wrap items-center justify-between text-[11px] text-gray-500 border-t border-gray-800/40">
+        <div class="flex items-center gap-1.5">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>汇率接口：Pages.dev 备用镜像 (高可用) / jsDelivr CDN (自动回退)</span>
+        </div>
+        <div v-if="config.settings.last_rates_update" class="font-mono text-gray-400">
+          基准日期：{{ config.settings.last_rates_update }}
         </div>
       </div>
     </div>
@@ -139,29 +191,100 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import { RotateCcw, Save, CheckCircle2, X, Coins } from "lucide-vue-next";
+import {
+  RotateCcw,
+  Save,
+  CheckCircle2,
+  X,
+  Coins,
+  Globe,
+  RefreshCw,
+} from "lucide-vue-next";
 import type { PricingConfig } from "../types";
+import {
+  SUPPORTED_CURRENCIES,
+  DEFAULT_OFFLINE_RATES,
+  syncExchangeRates,
+} from "../services/currency";
 
 const config = reactive<PricingConfig>({
   settings: {
     currency: "USD",
     usd_to_cny_rate: 7.25,
+    exchange_rates: { ...DEFAULT_OFFLINE_RATES },
+    last_rates_update: null,
   },
   pricing: [],
 });
 
 const isSaving = ref(false);
+const isSyncingRates = ref(false);
 const statusMessage = ref("");
+
+const currentExchangeRate = computed(() => {
+  const cur = config.settings.currency?.toUpperCase() || "USD";
+  if (cur === "USD") return 1.0;
+  if (cur === "CNY") return config.settings.usd_to_cny_rate || 7.25;
+  if (config.settings.exchange_rates && config.settings.exchange_rates[cur]) {
+    return config.settings.exchange_rates[cur];
+  }
+  return DEFAULT_OFFLINE_RATES[cur] || 1.0;
+});
+
+const onExchangeRateInput = (e: Event) => {
+  const val = parseFloat((e.target as HTMLInputElement).value);
+  if (isNaN(val) || val <= 0) return;
+  const cur = config.settings.currency?.toUpperCase() || "USD";
+  if (!config.settings.exchange_rates) {
+    config.settings.exchange_rates = { ...DEFAULT_OFFLINE_RATES };
+  }
+  config.settings.exchange_rates[cur] = val;
+  if (cur === "CNY") {
+    config.settings.usd_to_cny_rate = val;
+  }
+};
+
+const onCurrencyChange = () => {
+  const cur = config.settings.currency?.toUpperCase() || "USD";
+  if (cur === "CNY") {
+    if (config.settings.exchange_rates && config.settings.exchange_rates["CNY"]) {
+      config.settings.usd_to_cny_rate = config.settings.exchange_rates["CNY"];
+    }
+  }
+};
 
 const fetchPricing = async () => {
   try {
     const res = await invoke<PricingConfig>("get_pricing_config");
     config.settings = res.settings;
+    if (!config.settings.exchange_rates || Object.keys(config.settings.exchange_rates).length === 0) {
+      config.settings.exchange_rates = { ...DEFAULT_OFFLINE_RATES };
+    }
     config.pricing = res.pricing;
   } catch (err) {
     console.error("fetchPricing error:", err);
+  }
+};
+
+const onSyncRates = async () => {
+  isSyncingRates.value = true;
+  try {
+    const res = await syncExchangeRates(true);
+    await fetchPricing();
+    if (res.success) {
+      statusMessage.value = `最新汇率同步成功！(基准日期: ${res.date || '今日'}, 来源: ${res.source === 'primary' ? 'Pages.dev 备用镜像' : 'jsDelivr CDN'})`;
+    } else {
+      statusMessage.value = res.error || "汇率拉取失败，已使用离线默认基准汇率";
+    }
+    setTimeout(() => {
+      statusMessage.value = "";
+    }, 5000);
+  } catch (err) {
+    console.error("onSyncRates error:", err);
+  } finally {
+    isSyncingRates.value = false;
   }
 };
 
@@ -169,7 +292,7 @@ const savePricing = async () => {
   isSaving.value = true;
   try {
     await invoke("save_pricing_config", { config });
-    statusMessage.value = "费率配置已成功保存！";
+    statusMessage.value = "费率与汇率配置已成功保存！";
     setTimeout(() => {
       statusMessage.value = "";
     }, 4000);
@@ -194,7 +317,16 @@ const resetDefaults = async () => {
   }
 };
 
-onMounted(() => {
-  fetchPricing();
+onMounted(async () => {
+  await fetchPricing();
+  // Silently check and sync rates in background if never updated or old
+  const today = new Date().toISOString().slice(0, 10);
+  if (!config.settings.last_rates_update || config.settings.last_rates_update !== today) {
+    syncExchangeRates(false).then((res) => {
+      if (res.success) {
+        fetchPricing();
+      }
+    });
+  }
 });
 </script>

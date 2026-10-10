@@ -46,6 +46,8 @@ pub fn run() {
             reset_pricing_config,
             export_logs_csv,
             toggle_currency,
+            set_currency,
+            update_exchange_rates,
             refresh_data,
             get_system_settings,
             set_live_sync_enabled,
@@ -137,6 +139,42 @@ mod tests {
         assert_eq!(cfg.pricing[0].model_id, "gemini-3.8-flash");
         assert!((cfg.pricing[0].prompt_price_per_million - 0.75).abs() < 1e-4);
         assert!((cfg.pricing[0].output_price_per_million - 3.75).abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_multi_currency_and_rate_updates() {
+        let pricing = PricingService::new_defaults_only();
+
+        // 1. Check USD default cost
+        let (cost_usd, cur_usd) = pricing.calculate_cost(1_000_000, 1_000_000, "gemini-3.8-flash");
+        assert_eq!(cur_usd, "USD");
+        assert!((cost_usd - 4.50).abs() < 1e-4);
+        assert_eq!(PricingService::get_currency_symbol("USD"), "$");
+
+        // 2. Set to EUR
+        pricing.set_currency("EUR");
+        let (cost_eur, cur_eur) = pricing.calculate_cost(1_000_000, 1_000_000, "gemini-3.8-flash");
+        assert_eq!(cur_eur, "EUR");
+        // default EUR rate is 0.90, so 4.50 * 0.90 = 4.05
+        assert!((cost_eur - 4.05).abs() < 1e-4);
+        assert_eq!(PricingService::get_currency_symbol("EUR"), "€");
+
+        // 3. Update dynamic exchange rates from API payload
+        let mut rates = std::collections::HashMap::new();
+        rates.insert("EUR".to_string(), 0.8927);
+        rates.insert("JPY".to_string(), 158.32);
+        rates.insert("CNY".to_string(), 6.6968);
+        pricing.update_exchange_rates(rates, Some("2026-10-10".to_string()));
+
+        let (cost_eur_updated, _) = pricing.calculate_cost(1_000_000, 1_000_000, "gemini-3.8-flash");
+        assert!((cost_eur_updated - (4.50 * 0.8927)).abs() < 1e-4);
+
+        // 4. Set to JPY
+        pricing.set_currency("JPY");
+        let (cost_jpy, cur_jpy) = pricing.calculate_cost(1_000_000, 1_000_000, "gemini-3.8-flash");
+        assert_eq!(cur_jpy, "JPY");
+        assert!((cost_jpy - (4.50 * 158.32)).abs() < 1e-3);
+        assert_eq!(PricingService::get_currency_symbol("JPY"), "¥");
     }
 }
 

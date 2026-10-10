@@ -291,7 +291,7 @@ impl TokenDataService {
         let thinking_ratio_text = format!("{:.1}%", thinking_ratio);
 
         let currency = self.pricing_service.get_currency();
-        let currency_symbol = if currency == "CNY" { "¥".to_string() } else { "$".to_string() };
+        let currency_symbol = PricingService::get_currency_symbol(&currency).to_string();
 
         OverviewStats {
             total_tokens: grand_total,

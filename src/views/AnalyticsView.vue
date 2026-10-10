@@ -107,7 +107,7 @@
                 {{ d.calls }} 次
               </td>
               <td class="py-2.5 px-4 text-right font-semibold text-emerald-400">
-                ${{ d.cost.toFixed(4) }}
+                {{ currencySymbol }}{{ d.cost.toFixed(4) }}
               </td>
             </tr>
           </tbody>
@@ -121,15 +121,18 @@
 import { ref, computed, onMounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { RotateCw, CalendarDays } from "lucide-vue-next";
-import type { DailyTokenStat } from "../types";
+import type { DailyTokenStat, OverviewStats } from "../types";
 
 const dailyStats = ref<DailyTokenStat[]>([]);
+const currencySymbol = ref("$");
 const isRefreshing = ref(false);
 
 const fetchData = async () => {
   isRefreshing.value = true;
   try {
     dailyStats.value = await invoke<DailyTokenStat[]>("get_daily_stats");
+    const overview = await invoke<OverviewStats>("get_overview_stats");
+    currencySymbol.value = overview.currency_symbol || "$";
   } catch (err) {
     console.error("fetchData error:", err);
   } finally {

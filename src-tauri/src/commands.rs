@@ -101,6 +101,20 @@ pub fn toggle_currency(state: State<'_, AppState>) -> String {
 }
 
 #[tauri::command]
+pub fn set_currency(state: State<'_, AppState>, currency: String) -> String {
+    state.pricing_service.set_currency(&currency)
+}
+
+#[tauri::command]
+pub fn update_exchange_rates(
+    state: State<'_, AppState>,
+    rates: std::collections::HashMap<String, f64>,
+    date: Option<String>,
+) {
+    state.pricing_service.update_exchange_rates(rates, date);
+}
+
+#[tauri::command]
 pub fn refresh_data(state: State<'_, AppState>) -> OverviewStats {
     state.data_service.refresh_all(true);
     state.data_service.get_overview_stats()

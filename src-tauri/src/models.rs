@@ -1,4 +1,21 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+fn default_exchange_rates() -> HashMap<String, f64> {
+    let mut map = HashMap::new();
+    map.insert("USD".to_string(), 1.0);
+    map.insert("CNY".to_string(), 7.25);
+    map.insert("EUR".to_string(), 0.90);
+    map.insert("JPY".to_string(), 155.0);
+    map.insert("GBP".to_string(), 0.76);
+    map.insert("HKD".to_string(), 7.80);
+    map.insert("TWD".to_string(), 32.0);
+    map.insert("KRW".to_string(), 1350.0);
+    map.insert("SGD".to_string(), 1.28);
+    map.insert("CAD".to_string(), 1.42);
+    map.insert("AUD".to_string(), 1.43);
+    map
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelPricing {
@@ -15,9 +32,13 @@ pub struct ModelPricing {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PricingSettings {
     #[serde(alias = "Currency")]
-    pub currency: String, // "USD" or "CNY"
+    pub currency: String, // e.g. "USD", "CNY", "EUR", "JPY", etc.
     #[serde(alias = "UsdToCnyRate")]
     pub usd_to_cny_rate: f64,
+    #[serde(default = "default_exchange_rates", alias = "ExchangeRates")]
+    pub exchange_rates: HashMap<String, f64>,
+    #[serde(default, alias = "LastRatesUpdate")]
+    pub last_rates_update: Option<String>,
 }
 
 impl Default for PricingSettings {
@@ -25,6 +46,8 @@ impl Default for PricingSettings {
         Self {
             currency: "USD".to_string(),
             usd_to_cny_rate: 7.25,
+            exchange_rates: default_exchange_rates(),
+            last_rates_update: None,
         }
     }
 }

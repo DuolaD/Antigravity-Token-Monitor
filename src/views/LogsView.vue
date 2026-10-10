@@ -175,7 +175,7 @@
 
               <!-- Cost -->
               <td class="py-2.5 px-3.5 text-right font-semibold text-emerald-400">
-                {{ item.currency === 'CNY' ? '¥' : '$' }}{{ item.cost.toFixed(5) }}
+                {{ getCurrencySymbol(item.currency) }}{{ item.cost.toFixed(5) }}
               </td>
 
               <!-- Detail Modal Button -->
@@ -282,7 +282,7 @@
           <div class="flex justify-between py-1">
             <span class="text-emerald-400">预估结算费用:</span>
             <span class="text-emerald-400 font-bold">
-              {{ activeDetailItem.currency === 'CNY' ? '¥' : '$' }}{{ activeDetailItem.cost }} {{ activeDetailItem.currency }}
+              {{ getCurrencySymbol(activeDetailItem.currency) }}{{ activeDetailItem.cost }} {{ activeDetailItem.currency }}
             </span>
           </div>
         </div>
@@ -314,6 +314,7 @@ import {
   X,
 } from "lucide-vue-next";
 import type { FilterOptions, PagedLogsResult, TokenCallItem } from "../types";
+import { getCurrencySymbol } from "../services/currency";
 
 const searchQuery = ref("");
 const selectedDateRange = ref("全部");

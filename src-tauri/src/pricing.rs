@@ -143,6 +143,9 @@ impl PricingService {
     }
 
     pub fn save_to_file(&self) {
+        if self.config_path.as_os_str() == "pricing_memory.json" {
+            return;
+        }
         if let Some(parent) = self.config_path.parent() {
             let _ = fs::create_dir_all(parent);
         }
@@ -189,17 +192,64 @@ impl PricingService {
         self.settings.read().unwrap().currency.clone()
     }
 
-    pub fn toggle_currency(&self) -> String {
-        let mut s = self.settings.write().unwrap();
-        if s.currency == "USD" {
-            s.currency = "CNY".to_string();
-        } else {
-            s.currency = "USD".to_string();
+    pub fn get_currency_symbol(currency: &str) -> &'static str {
+        match currency.to_uppercase().as_str() {
+            "USD" => "$",
+            "CNY" | "RMB" => "¥",
+            "EUR" => "€",
+            "JPY" => "¥",
+            "GBP" => "£",
+            "HKD" => "HK$",
+            "TWD" => "NT$",
+            "KRW" => "₩",
+            "SGD" => "S$",
+            "CAD" => "CA$",
+            "AUD" => "AU$",
+            _ => "$",
         }
+    }
+
+    pub fn set_currency(&self, currency: &str) -> String {
+        let mut s = self.settings.write().unwrap();
+        s.currency = currency.to_uppercase();
         let cur = s.currency.clone();
         drop(s);
         self.save_to_file();
         cur
+    }
+
+    pub fn update_exchange_rates(&self, rates: HashMap<String, f64>, date: Option<String>) {
+        let mut s = self.settings.write().unwrap();
+        for (k, v) in rates {
+            let code = k.to_uppercase();
+            if code == "CNY" {
+                s.usd_to_cny_rate = v;
+            }
+            s.exchange_rates.insert(code, v);
+        }
+        if let Some(d) = date {
+            s.last_rates_update = Some(d);
+        }
+        drop(s);
+        self.save_to_file();
+    }
+
+    pub fn toggle_currency(&self) -> String {
+        let mut s = self.settings.write().unwrap();
+        let cur = s.currency.to_uppercase();
+        let next = match cur.as_str() {
+            "USD" => "CNY",
+            "CNY" => "EUR",
+            "EUR" => "JPY",
+            "JPY" => "HKD",
+            "HKD" => "USD",
+            _ => "USD",
+        };
+        s.currency = next.to_string();
+        let cur_out = s.currency.clone();
+        drop(s);
+        self.save_to_file();
+        cur_out
     }
 
     pub fn calculate_cost(&self, prompt_tokens: i64, output_tokens: i64, model: &str) -> (f64, String) {
@@ -234,12 +284,19 @@ impl PricingService {
         let output_usd = (output_tokens as f64 / 1_000_000.0) * rate.output_price_per_million;
         let total_usd = prompt_usd + output_usd;
 
-        let final_cost = if settings.currency == "CNY" {
-            total_usd * settings.usd_to_cny_rate
+        let cur = settings.currency.to_uppercase();
+        let exchange_rate = if cur == "USD" {
+            1.0
+        } else if let Some(&r) = settings.exchange_rates.get(&cur) {
+            r
+        } else if cur == "CNY" {
+            settings.usd_to_cny_rate
         } else {
-            total_usd
+            1.0
         };
 
-        (final_cost, settings.currency.clone())
+        let final_cost = total_usd * exchange_rate;
+
+        (final_cost, cur)
     }
 }

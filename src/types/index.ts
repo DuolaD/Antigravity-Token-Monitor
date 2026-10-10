@@ -8,6 +8,8 @@ export interface ModelPricing {
 export interface PricingSettings {
   currency: string;
   usd_to_cny_rate: number;
+  exchange_rates?: Record<string, number>;
+  last_rates_update?: string | null;
 }
 
 export interface PricingConfig {

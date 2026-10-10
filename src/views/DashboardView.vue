@@ -12,15 +12,35 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Currency Toggle Button -->
-        <button
-          @click="onToggleCurrency"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/80 hover:bg-gray-700/80 text-xs font-semibold text-gray-200 transition-colors shadow-sm"
-          title="切换结算货币 (USD / CNY)"
-        >
-          <Coins class="w-3.5 h-3.5 text-amber-400" />
-          <span>{{ stats?.currency || 'USD' }}</span>
-        </button>
+        <!-- Currency Selector Dropdown -->
+        <div class="relative" ref="currencyMenuRef">
+          <button
+            @click="isCurrencyMenuOpen = !isCurrencyMenuOpen"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/80 hover:bg-gray-700/80 text-xs font-semibold text-gray-200 transition-colors shadow-sm"
+            title="选择结算货币"
+          >
+            <Coins class="w-3.5 h-3.5 text-amber-400" />
+            <span>{{ stats?.currency || 'USD' }}</span>
+            <ChevronDown class="w-3 h-3 text-gray-400" />
+          </button>
+
+          <!-- Dropdown popover -->
+          <div
+            v-if="isCurrencyMenuOpen"
+            class="absolute right-0 mt-1.5 w-44 rounded-xl bg-gray-900 border border-gray-700 shadow-2xl z-50 py-1 overflow-hidden animate-fade-in"
+          >
+            <button
+              v-for="cur in SUPPORTED_CURRENCIES"
+              :key="cur.code"
+              @click="onSelectCurrency(cur.code)"
+              class="w-full px-3 py-1.5 text-left text-xs flex items-center justify-between transition-colors hover:bg-gray-800"
+              :class="stats?.currency === cur.code ? 'text-blue-400 font-bold bg-blue-500/10' : 'text-gray-300'"
+            >
+              <span>{{ cur.code }} ({{ cur.symbol }})</span>
+              <span class="text-[10px] text-gray-500">{{ cur.name.split(' ')[0] }}</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Refresh Button -->
         <button
@@ -238,14 +258,19 @@ import {
   Timer,
   TrendingUp,
   FolderGit2,
+  ChevronDown,
 } from "lucide-vue-next";
 import type { OverviewStats, TokenTrendPoint } from "../types";
 import RollingNumber from "../components/RollingNumber.vue";
 import TrendChart from "../components/TrendChart.vue";
+import { SUPPORTED_CURRENCIES } from "../services/currency";
 
 const stats = ref<OverviewStats | null>(null);
 const trendPoints = ref<TokenTrendPoint[]>([]);
 const isRefreshing = ref(false);
+
+const isCurrencyMenuOpen = ref(false);
+const currencyMenuRef = ref<HTMLElement | null>(null);
 
 const presets = ["周", "月", "季度", "半年", "-1年", "全部"];
 const activePreset = ref("全部");
@@ -285,17 +310,25 @@ const setPreset = (p: string) => {
   fetchTrend();
 };
 
-const onToggleCurrency = async () => {
+const onSelectCurrency = async (code: string) => {
+  isCurrencyMenuOpen.value = false;
   try {
-    await invoke("toggle_currency");
+    await invoke("set_currency", { currency: code });
     await fetchData(false);
   } catch (err) {
-    console.error("toggle currency error:", err);
+    console.error("set_currency error:", err);
+  }
+};
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (currencyMenuRef.value && !currencyMenuRef.value.contains(e.target as Node)) {
+    isCurrencyMenuOpen.value = false;
   }
 };
 
 onMounted(async () => {
   await fetchData(false);
+  window.addEventListener("click", handleClickOutside);
 
   // Listen to background live sync event
   try {
@@ -308,6 +341,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener("click", handleClickOutside);
   if (unlistenUpdate) {
     unlistenUpdate();
   }

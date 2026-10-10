@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-100 flex items-center gap-2">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           日志明细
         </h1>
-        <p class="text-xs text-gray-400 mt-1">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
           查看每一次 LLM 调用的精确输入、输出、思考 Token 与耗时记录
         </p>
       </div>
@@ -14,7 +14,7 @@
       <button
         @click="exportCsv"
         :disabled="isExporting"
-        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50"
+        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
       >
         <FileSpreadsheet class="w-3.5 h-3.5" />
         <span>{{ isExporting ? '正在导出...' : '导出 CSV 报表' }}</span>
@@ -22,7 +22,7 @@
     </div>
 
     <!-- Filter Toolbar -->
-    <div class="card-glass p-3.5 rounded-xl border border-white/5">
+    <div class="card-glass p-3.5 rounded-xl">
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
         <!-- Search Query -->
         <div class="lg:col-span-2 relative">
@@ -30,7 +30,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="搜索标题 / 模型 / UUID..."
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-3 py-1.5 text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500"
             @keyup.enter="applyFilter"
           />
         </div>
@@ -39,7 +39,7 @@
         <div>
           <select
             v-model="selectedDateRange"
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500"
+            class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500"
             @change="applyFilter"
           >
             <option value="全部">全部时间</option>
@@ -53,7 +53,7 @@
         <div>
           <select
             v-model="selectedModel"
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500"
+            class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500"
             @change="applyFilter"
           >
             <option value="全部模型">全部模型</option>
@@ -67,7 +67,7 @@
         <div>
           <select
             v-model="selectedWorkspace"
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500"
+            class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500"
             @change="applyFilter"
           >
             <option value="全部工作区">全部工作区</option>
@@ -81,14 +81,14 @@
         <div class="flex items-center gap-1.5">
           <button
             @click="applyFilter"
-            class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors"
+            class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors cursor-pointer"
           >
             <Filter class="w-3.5 h-3.5" />
             <span>筛选</span>
           </button>
           <button
             @click="resetFilter"
-            class="px-2.5 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 border border-gray-700 transition-colors"
+            class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
             title="重置筛选条件"
           >
             <RotateCcw class="w-3.5 h-3.5" />
@@ -98,83 +98,83 @@
     </div>
 
     <!-- Data Table Card -->
-    <div class="card-glass rounded-xl border border-white/5 overflow-hidden">
+    <div class="card-glass rounded-xl overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="bg-gray-900/90 border-b border-gray-800 text-gray-400 font-semibold select-none">
+            <tr class="bg-gray-100/70 dark:bg-gray-900/90 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-semibold select-none">
               <th class="py-3 px-3.5 w-36">时间</th>
               <th class="py-3 px-3.5 min-w-[200px]">对话 / 项目工作区</th>
               <th class="py-3 px-3.5 w-40">模型</th>
               <th class="py-3 px-3 w-24 text-right">提示 Tokens</th>
               <th class="py-3 px-3 w-24 text-right">补全 Tokens</th>
-              <th class="py-3 px-3 w-24 text-right text-amber-400">思考 Tokens</th>
-              <th class="py-3 px-3 w-28 text-right font-bold text-gray-300">总计 Tokens</th>
+              <th class="py-3 px-3 w-24 text-right text-amber-600 dark:text-amber-400">思考 Tokens</th>
+              <th class="py-3 px-3 w-28 text-right font-bold text-gray-700 dark:text-gray-300">总计 Tokens</th>
               <th class="py-3 px-3 w-20 text-right">耗时</th>
               <th class="py-3 px-3.5 w-24 text-right">费用</th>
               <th class="py-3 px-2 w-12 text-center">详情</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-800/60 font-mono">
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono">
             <tr v-if="logs.items.length === 0">
-              <td colspan="10" class="py-12 text-center text-gray-500">
+              <td colspan="10" class="py-12 text-center text-gray-400 dark:text-gray-500">
                 暂无符合条件的调用日志记录
               </td>
             </tr>
             <tr
               v-for="item in logs.items"
               :key="item.id"
-              class="hover:bg-white/[0.02] transition-colors"
+              class="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
             >
               <!-- Time -->
-              <td class="py-2.5 px-3.5 text-gray-400 text-[11px] whitespace-nowrap">
+              <td class="py-2.5 px-3.5 text-gray-500 dark:text-gray-400 text-[11px] whitespace-nowrap">
                 {{ item.timestamp }}
               </td>
 
               <!-- Title & Workspace -->
               <td class="py-2.5 px-3.5 font-sans">
-                <div class="font-semibold text-gray-200 truncate max-w-[280px]" :title="item.title">
+                <div class="font-semibold text-gray-800 dark:text-gray-200 truncate max-w-[280px]" :title="item.title">
                   {{ item.title }}
                 </div>
-                <div class="text-[11px] text-gray-500 truncate max-w-[280px]" :title="item.workspace_full">
+                <div class="text-[11px] text-gray-400 dark:text-gray-500 truncate max-w-[280px]" :title="item.workspace_full">
                   {{ item.workspace }}
                 </div>
               </td>
 
               <!-- Model Badge -->
               <td class="py-2.5 px-3.5">
-                <span class="inline-block px-2 py-0.5 rounded bg-sky-950/60 border border-sky-800/40 text-sky-400 text-[10px] font-semibold truncate max-w-[150px]" :title="item.model">
+                <span class="inline-block px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/40 text-sky-700 dark:text-sky-400 text-[10px] font-semibold truncate max-w-[150px]" :title="item.model">
                   {{ item.model }}
                 </span>
               </td>
 
               <!-- Prompt -->
-              <td class="py-2.5 px-3 text-right text-gray-400">
+              <td class="py-2.5 px-3 text-right text-gray-600 dark:text-gray-400">
                 {{ item.prompt_tokens.toLocaleString() }}
               </td>
 
               <!-- Candidate -->
-              <td class="py-2.5 px-3 text-right text-gray-400">
+              <td class="py-2.5 px-3 text-right text-gray-600 dark:text-gray-400">
                 {{ item.candidate_tokens.toLocaleString() }}
               </td>
 
               <!-- Thinking -->
-              <td class="py-2.5 px-3 text-right text-amber-400 font-semibold">
+              <td class="py-2.5 px-3 text-right text-amber-600 dark:text-amber-400 font-semibold">
                 {{ item.thinking_tokens.toLocaleString() }}
               </td>
 
               <!-- Total -->
-              <td class="py-2.5 px-3 text-right font-bold text-gray-200">
+              <td class="py-2.5 px-3 text-right font-bold text-gray-900 dark:text-gray-200">
                 {{ (item.prompt_tokens + item.output_tokens).toLocaleString() }}
               </td>
 
               <!-- Latency -->
-              <td class="py-2.5 px-3 text-right text-gray-400">
+              <td class="py-2.5 px-3 text-right text-gray-500 dark:text-gray-400">
                 {{ (item.latency_ms / 1000).toFixed(1) }}s
               </td>
 
               <!-- Cost -->
-              <td class="py-2.5 px-3.5 text-right font-semibold text-emerald-400">
+              <td class="py-2.5 px-3.5 text-right font-semibold text-emerald-600 dark:text-emerald-400">
                 {{ getCurrencySymbol(item.currency) }}{{ item.cost.toFixed(5) }}
               </td>
 
@@ -182,7 +182,7 @@
               <td class="py-2.5 px-2 text-center">
                 <button
                   @click="openDetail(item)"
-                  class="p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-gray-800 transition-colors"
+                  class="p-1 rounded text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                   title="查看完整调用参数"
                 >
                   <Eye class="w-3.5 h-3.5" />
@@ -194,7 +194,7 @@
       </div>
 
       <!-- Pagination Footer -->
-      <div class="p-3.5 bg-gray-900/60 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400 select-none">
+      <div class="p-3.5 bg-gray-50/80 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 select-none">
         <div>
           第 {{ logs.page }} 页 / 共 {{ logs.total_pages }} 页 (共 {{ logs.total_count }} 条记录)
         </div>
@@ -203,7 +203,7 @@
           <button
             @click="changePage(logs.page - 1)"
             :disabled="logs.page <= 1"
-            class="px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-gray-800 text-gray-200 transition-colors flex items-center gap-1"
+            class="px-2.5 py-1 rounded bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-gray-800 border border-gray-200 dark:border-transparent text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
           >
             <ChevronLeft class="w-3.5 h-3.5" />
             <span>上一页</span>
@@ -211,7 +211,7 @@
           <button
             @click="changePage(logs.page + 1)"
             :disabled="logs.page >= logs.total_pages"
-            class="px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-gray-800 text-gray-200 transition-colors flex items-center gap-1"
+            class="px-2.5 py-1 rounded bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-gray-800 border border-gray-200 dark:border-transparent text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
           >
             <span>下一页</span>
             <ChevronRight class="w-3.5 h-3.5" />
@@ -223,65 +223,65 @@
     <!-- Detail Dialog Modal -->
     <div
       v-if="activeDetailItem"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-xs"
       @click.self="activeDetailItem = null"
     >
-      <div class="w-full max-w-lg card-glass p-5 rounded-2xl border border-gray-700 shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-          <div class="flex items-center gap-2 text-blue-400">
+      <div class="w-full max-w-lg card-glass p-5 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+          <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
             <Info class="w-4 h-4" />
-            <h3 class="text-sm font-bold text-gray-100">单次调用元数据详情</h3>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">单次调用元数据详情</h3>
           </div>
           <button
             @click="activeDetailItem = null"
-            class="text-gray-400 hover:text-gray-200 p-1 rounded-md hover:bg-gray-800 transition-colors"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <div class="space-y-2 text-xs font-mono">
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">调用标识 (ID):</span>
-            <span class="text-gray-200">{{ activeDetailItem.id }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">调用标识 (ID):</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.id }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">会话 UUID:</span>
-            <span class="text-gray-200">{{ activeDetailItem.conversation_id }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">会话 UUID:</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.conversation_id }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">调用时间:</span>
-            <span class="text-gray-200">{{ activeDetailItem.timestamp }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">调用时间:</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.timestamp }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">模型名称:</span>
-            <span class="text-sky-400 font-semibold">{{ activeDetailItem.model }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">模型名称:</span>
+            <span class="text-sky-600 dark:text-sky-400 font-semibold">{{ activeDetailItem.model }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">所属工作区:</span>
-            <span class="text-gray-200 truncate max-w-[280px]" :title="activeDetailItem.workspace_full">
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">所属工作区:</span>
+            <span class="text-gray-800 dark:text-gray-200 truncate max-w-[280px]" :title="activeDetailItem.workspace_full">
               {{ activeDetailItem.workspace_full || activeDetailItem.workspace }}
             </span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">Prompt Tokens:</span>
-            <span class="text-gray-200">{{ activeDetailItem.prompt_tokens.toLocaleString() }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">Prompt Tokens:</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.prompt_tokens.toLocaleString() }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">Candidate Tokens:</span>
-            <span class="text-gray-200">{{ activeDetailItem.candidate_tokens.toLocaleString() }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">Candidate Tokens:</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.candidate_tokens.toLocaleString() }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-amber-400">Thinking Tokens:</span>
-            <span class="text-amber-400 font-bold">{{ activeDetailItem.thinking_tokens.toLocaleString() }}</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-amber-600 dark:text-amber-400">Thinking Tokens:</span>
+            <span class="text-amber-600 dark:text-amber-400 font-bold">{{ activeDetailItem.thinking_tokens.toLocaleString() }}</span>
           </div>
-          <div class="flex justify-between py-1 border-b border-gray-800/60">
-            <span class="text-gray-400">耗时 (Latency):</span>
-            <span class="text-gray-200">{{ activeDetailItem.latency_ms }} ms</span>
+          <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-gray-500 dark:text-gray-400">耗时 (Latency):</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.latency_ms }} ms</span>
           </div>
           <div class="flex justify-between py-1">
-            <span class="text-emerald-400">预估结算费用:</span>
-            <span class="text-emerald-400 font-bold">
+            <span class="text-emerald-600 dark:text-emerald-400">预估结算费用:</span>
+            <span class="text-emerald-600 dark:text-emerald-400 font-bold">
               {{ getCurrencySymbol(activeDetailItem.currency) }}{{ activeDetailItem.cost }} {{ activeDetailItem.currency }}
             </span>
           </div>
@@ -290,7 +290,7 @@
         <div class="pt-2 flex justify-end">
           <button
             @click="activeDetailItem = null"
-            class="px-4 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-200 transition-colors"
+            class="px-4 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors cursor-pointer"
           >
             关闭
           </button>

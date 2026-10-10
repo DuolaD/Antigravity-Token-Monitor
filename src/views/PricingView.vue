@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-100 flex items-center gap-2">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           模型费率配置
         </h1>
-        <p class="text-xs text-gray-400 mt-1">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
           参考 NewAPI 模型倍率管理，自定义配置各模型每 100 万 (1M) Tokens 的结算价格
         </p>
       </div>
@@ -14,7 +14,7 @@
       <div class="flex items-center gap-2.5">
         <button
           @click="resetDefaults"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-300 transition-colors border border-gray-700"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700 shadow-xs cursor-pointer"
         >
           <RotateCcw class="w-3.5 h-3.5" />
           <span>重置为默认</span>
@@ -23,7 +23,7 @@
         <button
           @click="savePricing"
           :disabled="isSaving"
-          class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50"
+          class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
         >
           <Save class="w-3.5 h-3.5" />
           <span>{{ isSaving ? '正在保存...' : '保存费率配置' }}</span>
@@ -34,28 +34,28 @@
     <!-- Status Message Banner -->
     <div
       v-if="statusMessage"
-      class="p-3 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs flex items-center justify-between animate-fade-in"
+      class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between animate-fade-in"
     >
       <div class="flex items-center gap-2">
-        <CheckCircle2 class="w-4 h-4 text-emerald-400" />
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
         <span>{{ statusMessage }}</span>
       </div>
-      <button @click="statusMessage = ''" class="text-emerald-400 hover:text-emerald-200">
+      <button @click="statusMessage = ''" class="text-emerald-600 dark:text-emerald-400 hover:opacity-80">
         <X class="w-3.5 h-3.5" />
       </button>
     </div>
 
     <!-- Currency & Exchange Rate Card -->
-    <div class="card-glass p-5 rounded-xl border border-white/5 space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-gray-800/80">
+    <div class="card-glass p-5 rounded-xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800/80">
         <div class="flex items-center gap-2">
-          <Globe class="w-4 h-4 text-sky-400" />
-          <h2 class="text-sm font-semibold text-gray-200">货币结算与多币种汇率管理</h2>
+          <Globe class="w-4 h-4 text-sky-600 dark:text-sky-400" />
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">货币结算与多币种汇率管理</h2>
         </div>
         <button
           @click="onSyncRates"
           :disabled="isSyncingRates"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-950/80 hover:bg-sky-900/80 border border-sky-800/60 text-sky-300 hover:text-sky-100 text-xs font-medium transition-colors disabled:opacity-50 shadow-sm"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/80 hover:bg-sky-100 dark:hover:bg-sky-900/80 border border-sky-200 dark:border-sky-800/60 text-sky-700 dark:text-sky-300 hover:text-sky-900 dark:hover:text-sky-100 text-xs font-medium transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
           title="从网络拉取全球最新基准汇率 (Pages.dev 备用镜像优先，jsDelivr CDN 自动回退)"
         >
           <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isSyncingRates }" />
@@ -65,11 +65,11 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="space-y-2">
-          <label class="text-xs font-semibold text-gray-300">结算显示币种 (Target Currency)</label>
+          <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">结算显示币种 (Target Currency)</label>
           <select
             v-model="config.settings.currency"
             @change="onCurrencyChange"
-            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-sans"
+            class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 font-sans"
           >
             <option
               v-for="cur in SUPPORTED_CURRENCIES"
@@ -83,10 +83,10 @@
 
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-semibold text-gray-300">
+            <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">
               1 USD 兑 {{ config.settings.currency }} 换算汇率
             </label>
-            <span class="text-[10px] text-gray-500 font-mono">
+            <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
               {{ config.settings.currency === 'USD' ? '基准货币 (1.0000)' : '支持手动覆盖调整' }}
             </span>
           </div>
@@ -97,7 +97,7 @@
               value="1.0000"
               disabled
               type="text"
-              class="w-full bg-gray-900/40 border border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-400 font-mono cursor-not-allowed"
+              class="w-full bg-gray-100 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-lg px-3 py-2 text-xs text-gray-400 dark:text-gray-500 font-mono cursor-not-allowed"
             />
             <input
               v-else
@@ -105,52 +105,52 @@
               @input="onExchangeRateInput"
               type="number"
               step="0.0001"
-              class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
+              class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
             />
           </div>
         </div>
       </div>
 
       <!-- Sync Status & Info -->
-      <div class="pt-2 flex flex-wrap items-center justify-between text-[11px] text-gray-500 border-t border-gray-800/40">
+      <div class="pt-2 flex flex-wrap items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-800/40">
         <div class="flex items-center gap-1.5">
-          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           <span>汇率接口：Pages.dev 备用镜像 (高可用) / jsDelivr CDN (自动回退)</span>
         </div>
-        <div v-if="config.settings.last_rates_update" class="font-mono text-gray-400">
+        <div v-if="config.settings.last_rates_update" class="font-mono text-gray-500 dark:text-gray-400">
           基准日期：{{ config.settings.last_rates_update }}
         </div>
       </div>
     </div>
 
     <!-- Pricing Table Card -->
-    <div class="card-glass rounded-xl border border-white/5 overflow-hidden">
-      <div class="p-4 bg-gray-900/60 border-b border-gray-800 flex items-center justify-between">
+    <div class="card-glass rounded-xl overflow-hidden">
+      <div class="p-4 bg-gray-50/80 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <Coins class="w-4 h-4 text-amber-400" />
-          <h2 class="text-sm font-semibold text-gray-200">模型费率清单</h2>
+          <Coins class="w-4 h-4 text-amber-500 dark:text-amber-400" />
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">模型费率清单</h2>
         </div>
-        <span class="text-xs text-gray-500 font-mono">共 {{ config.pricing.length }} 个模型规则</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">共 {{ config.pricing.length }} 个模型规则</span>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="bg-gray-900/90 border-b border-gray-800 text-gray-400 font-semibold select-none">
+            <tr class="bg-gray-100/70 dark:bg-gray-900/90 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-semibold select-none">
               <th class="py-3 px-4 w-56">模型标识</th>
               <th class="py-3 px-4">显示名称</th>
               <th class="py-3 px-4 w-48 text-right">输入单价 ($ / 1M Tokens)</th>
               <th class="py-3 px-4 w-48 text-right">输出单价 ($ / 1M Tokens)</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-800/60 font-mono">
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono">
             <tr
               v-for="item in config.pricing"
               :key="item.model_id"
-              class="hover:bg-white/[0.02] transition-colors"
+              class="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
             >
               <!-- Model ID -->
-              <td class="py-2.5 px-4 font-semibold text-sky-400">
+              <td class="py-2.5 px-4 font-semibold text-sky-600 dark:text-sky-400">
                 {{ item.model_id }}
               </td>
 
@@ -159,7 +159,7 @@
                 <input
                   v-model="item.display_name"
                   type="text"
-                  class="w-full bg-gray-900/60 border border-gray-700/60 rounded px-2.5 py-1 text-xs text-gray-200 focus:outline-none focus:border-blue-500 font-sans"
+                  class="w-full bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700/60 rounded px-2.5 py-1 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 font-sans"
                 />
               </td>
 
@@ -169,7 +169,7 @@
                   v-model.number="item.prompt_price_per_million"
                   type="number"
                   step="0.01"
-                  class="w-32 bg-gray-900/60 border border-gray-700/60 rounded px-2.5 py-1 text-xs text-right text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
+                  class="w-32 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700/60 rounded px-2.5 py-1 text-xs text-right text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </td>
 
@@ -179,7 +179,7 @@
                   v-model.number="item.output_price_per_million"
                   type="number"
                   step="0.05"
-                  class="w-32 bg-gray-900/60 border border-gray-700/60 rounded px-2.5 py-1 text-xs text-right text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
+                  class="w-32 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700/60 rounded px-2.5 py-1 text-xs text-right text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </td>
             </tr>

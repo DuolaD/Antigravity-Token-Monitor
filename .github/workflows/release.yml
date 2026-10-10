@@ -212,7 +212,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ needs.prepare.outputs.tag }}"
-          TITLE="Antigravity Tokens $TAG"
 
           ASSET_ARGS=()
           for file in release-assets/*; do
@@ -230,6 +229,5 @@ jobs:
             echo "Creating new release $TAG..."
             gh release create "$TAG" "${ASSET_ARGS[@]}" \
               --target "${{ github.sha }}" \
-              --title "$TITLE" \
               --generate-notes
           fi

@@ -4,10 +4,10 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          模型费率配置
+          {{ t('pricing.title') }}
         </h1>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          参考 NewAPI 模型倍率管理，自定义配置各模型每 100 万 (1M) Tokens 的结算价格
+          {{ t('pricing.subtitle') }}
         </p>
       </div>
 
@@ -17,7 +17,7 @@
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700 shadow-xs cursor-pointer"
         >
           <RotateCcw class="w-3.5 h-3.5" />
-          <span>重置为默认</span>
+          <span>{{ t('pricing.resetDefaults') }}</span>
         </button>
 
         <button
@@ -26,7 +26,7 @@
           class="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
         >
           <Save class="w-3.5 h-3.5" />
-          <span>{{ isSaving ? '正在保存...' : '保存费率配置' }}</span>
+          <span>{{ isSaving ? t('pricing.saving') : t('pricing.savePricing') }}</span>
         </button>
       </div>
     </div>
@@ -40,7 +40,7 @@
         <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
         <span>{{ statusMessage }}</span>
       </div>
-      <button @click="statusMessage = ''" class="text-emerald-600 dark:text-emerald-400 hover:opacity-80">
+      <button @click="statusMessage = ''" class="text-emerald-600 dark:text-emerald-400 hover:opacity-80 cursor-pointer">
         <X class="w-3.5 h-3.5" />
       </button>
     </div>
@@ -50,22 +50,22 @@
       <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800/80">
         <div class="flex items-center gap-2">
           <Globe class="w-4 h-4 text-sky-600 dark:text-sky-400" />
-          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">货币结算与多币种汇率管理</h2>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('pricing.currencyCard.title') }}</h2>
         </div>
         <button
           @click="onSyncRates"
           :disabled="isSyncingRates"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/80 hover:bg-sky-100 dark:hover:bg-sky-900/80 border border-sky-200 dark:border-sky-800/60 text-sky-700 dark:text-sky-300 hover:text-sky-900 dark:hover:text-sky-100 text-xs font-medium transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
-          title="从网络拉取全球最新基准汇率 (Pages.dev 备用镜像优先，jsDelivr CDN 自动回退)"
+          :title="t('pricing.currencyCard.apiInfo')"
         >
           <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isSyncingRates }" />
-          <span>{{ isSyncingRates ? '正在同步汇率...' : '同步最新网络汇率' }}</span>
+          <span>{{ isSyncingRates ? t('pricing.currencyCard.syncingRates') : t('pricing.currencyCard.syncRates') }}</span>
         </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="space-y-2">
-          <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">结算显示币种 (Target Currency)</label>
+          <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ t('pricing.currencyCard.targetCurrency') }}</label>
           <select
             v-model="config.settings.currency"
             @change="onCurrencyChange"
@@ -76,7 +76,7 @@
               :key="cur.code"
               :value="cur.code"
             >
-              {{ cur.code }} ({{ cur.symbol }}) {{ cur.name }}
+              {{ cur.code }} ({{ cur.symbol }}) - {{ getLocalizedCurrencyName(cur.code, currentLocale) }}
             </option>
           </select>
         </div>
@@ -84,10 +84,10 @@
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">
-              1 USD 兑 {{ config.settings.currency }} 换算汇率
+              {{ t('pricing.currencyCard.exchangeRateLabel', { cur: config.settings.currency }) }}
             </label>
             <span class="text-[10px] text-gray-400 dark:text-gray-500 font-mono">
-              {{ config.settings.currency === 'USD' ? '基准货币 (1.0000)' : '支持手动覆盖调整' }}
+              {{ config.settings.currency === 'USD' ? t('pricing.currencyCard.baseCurrency') : t('pricing.currencyCard.manualOverride') }}
             </span>
           </div>
 
@@ -115,10 +115,10 @@
       <div class="pt-2 flex flex-wrap items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-800/40">
         <div class="flex items-center gap-1.5">
           <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span>汇率接口：Pages.dev 备用镜像 (高可用) / jsDelivr CDN (自动回退)</span>
+          <span>{{ t('pricing.currencyCard.apiInfo') }}</span>
         </div>
         <div v-if="config.settings.last_rates_update" class="font-mono text-gray-500 dark:text-gray-400">
-          基准日期：{{ config.settings.last_rates_update }}
+          {{ t('pricing.currencyCard.baseDate') }}{{ config.settings.last_rates_update }}
         </div>
       </div>
     </div>
@@ -128,19 +128,21 @@
       <div class="p-4 bg-gray-50/80 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <Coins class="w-4 h-4 text-amber-500 dark:text-amber-400" />
-          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">模型费率清单</h2>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('pricing.table.title') }}</h2>
         </div>
-        <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">共 {{ config.pricing.length }} 个模型规则</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">
+          {{ t('pricing.table.rulesCount', { n: config.pricing.length }) }}
+        </span>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-gray-100/70 dark:bg-gray-900/90 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-semibold select-none">
-              <th class="py-3 px-4 w-56">模型标识</th>
-              <th class="py-3 px-4">显示名称</th>
-              <th class="py-3 px-4 w-48 text-right">输入单价 ($ / 1M Tokens)</th>
-              <th class="py-3 px-4 w-48 text-right">输出单价 ($ / 1M Tokens)</th>
+              <th class="py-3 px-4 w-56">{{ t('pricing.table.modelId') }}</th>
+              <th class="py-3 px-4">{{ t('pricing.table.displayName') }}</th>
+              <th class="py-3 px-4 w-48 text-right">{{ t('pricing.table.promptPrice') }}</th>
+              <th class="py-3 px-4 w-48 text-right">{{ t('pricing.table.outputPrice') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono">
@@ -207,7 +209,9 @@ import {
   SUPPORTED_CURRENCIES,
   DEFAULT_OFFLINE_RATES,
   syncExchangeRates,
+  getLocalizedCurrencyName,
 } from "../services/currency";
+import { t, currentLocale } from "../services/i18n";
 
 const config = reactive<PricingConfig>({
   settings: {
@@ -274,9 +278,13 @@ const onSyncRates = async () => {
     const res = await syncExchangeRates(true);
     await fetchPricing();
     if (res.success) {
-      statusMessage.value = `最新汇率同步成功！(基准日期: ${res.date || '今日'}, 来源: ${res.source === 'primary' ? 'Pages.dev 备用镜像' : 'jsDelivr CDN'})`;
+      const srcText = res.source === "primary" ? t("pricing.currencyCard.sourcePrimary") : t("pricing.currencyCard.sourceFallback");
+      statusMessage.value = t("pricing.currencyCard.syncSuccess", {
+        date: res.date || "today",
+        source: srcText,
+      });
     } else {
-      statusMessage.value = res.error || "汇率拉取失败，已使用离线默认基准汇率";
+      statusMessage.value = res.error || t("pricing.currencyCard.syncFail");
     }
     setTimeout(() => {
       statusMessage.value = "";
@@ -292,7 +300,7 @@ const savePricing = async () => {
   isSaving.value = true;
   try {
     await invoke("save_pricing_config", { config });
-    statusMessage.value = "费率与汇率配置已成功保存！";
+    statusMessage.value = t("pricing.savedSuccess");
     setTimeout(() => {
       statusMessage.value = "";
     }, 4000);
@@ -308,7 +316,7 @@ const resetDefaults = async () => {
     const res = await invoke<PricingConfig>("reset_pricing_config");
     config.settings = res.settings;
     config.pricing = res.pricing;
-    statusMessage.value = "费率配置已重置为系统默认值！";
+    statusMessage.value = t("pricing.resetSuccess");
     setTimeout(() => {
       statusMessage.value = "";
     }, 4000);
@@ -319,7 +327,6 @@ const resetDefaults = async () => {
 
 onMounted(async () => {
   await fetchPricing();
-  // Silently check and sync rates in background if never updated or old
   const today = new Date().toISOString().slice(0, 10);
   if (!config.settings.last_rates_update || config.settings.last_rates_update !== today) {
     syncExchangeRates(false).then((res) => {

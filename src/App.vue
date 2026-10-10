@@ -9,8 +9,8 @@
             <Sparkles class="w-4 h-4 text-white" />
           </div>
           <div>
-            <div class="text-xs font-bold tracking-tight text-gray-900 dark:text-white">Antigravity Tokens</div>
-            <div class="text-[10px] text-gray-500 dark:text-gray-400">Token 消耗监控</div>
+            <div class="text-xs font-bold tracking-tight text-gray-900 dark:text-white">{{ t('app.title') }}</div>
+            <div class="text-[10px] text-gray-500 dark:text-gray-400">{{ t('app.subtitle') }}</div>
           </div>
         </div>
 
@@ -33,31 +33,47 @@
         </nav>
       </div>
 
-      <!-- Footer: Quick Theme Toggle & Real-time Live Badge -->
+      <!-- Footer: Quick Language, Theme Toggle & Real-time Live Badge -->
       <div class="space-y-2">
+        <!-- Quick Language Switcher Button -->
+        <button
+          type="button"
+          @click="cycleLanguage"
+          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200/80 dark:border-white/5 bg-gray-50/80 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-800/60 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors cursor-pointer"
+          :title="t('app.language.tooltip')"
+        >
+          <div class="flex items-center gap-1.5">
+            <Globe class="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+            <span class="text-[11px] font-medium">{{ languageModeLabel }}</span>
+          </div>
+          <span class="text-[10px] text-gray-400 font-mono">{{ activeLangBadge }}</span>
+        </button>
+
+        <!-- Quick Theme Toggle -->
         <button
           type="button"
           @click="cycleTheme"
           class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200/80 dark:border-white/5 bg-gray-50/80 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-800/60 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors cursor-pointer"
-          title="点击切换外观主题：自动跟随系统 / 浅色 / 深色"
+          :title="t('app.theme.tooltip')"
         >
           <div class="flex items-center gap-1.5">
             <component :is="themeIcon" class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
             <span class="text-[11px] font-medium">{{ themeLabel }}</span>
           </div>
-          <span class="text-[10px] text-gray-400 font-mono">{{ activeTheme === 'dark' ? '深色' : '浅色' }}</span>
+          <span class="text-[10px] text-gray-400 font-mono">{{ activeTheme === 'dark' ? t('app.theme.darkShort') : t('app.theme.lightShort') }}</span>
         </button>
 
+        <!-- Live Status Badge -->
         <div class="p-2.5 rounded-xl bg-gray-100/80 dark:bg-gray-900/60 border border-gray-200/80 dark:border-white/5 space-y-1.5 transition-colors duration-200">
           <div class="flex items-center gap-2">
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">实时探测监听中</span>
+            <span class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">{{ t('app.liveStatus.active') }}</span>
           </div>
           <p class="text-[10px] text-gray-500 leading-tight">
-            毫秒级捕获 SQLite WAL 变更
+            {{ t('app.liveStatus.desc') }}
           </p>
         </div>
       </div>
@@ -84,6 +100,7 @@ import {
   Sun,
   Moon,
   Laptop,
+  Globe,
 } from "lucide-vue-next";
 
 import DashboardView from "./views/DashboardView.vue";
@@ -92,16 +109,17 @@ import AnalyticsView from "./views/AnalyticsView.vue";
 import PricingView from "./views/PricingView.vue";
 import SettingsView from "./views/SettingsView.vue";
 import { themeMode, activeTheme, setThemeMode } from "./services/theme";
+import { t, languageMode, currentLocale, setLanguageMode, type LanguageMode } from "./services/i18n";
 
 const currentTab = ref("dashboard");
 
-const navItems = [
-  { id: "dashboard", label: "总览看板", icon: LayoutDashboard },
-  { id: "logs", label: "日志明细", icon: ScrollText },
-  { id: "analytics", label: "统计分析", icon: BarChart3 },
-  { id: "pricing", label: "模型费率", icon: Coins },
-  { id: "settings", label: "系统设置", icon: Settings },
-];
+const navItems = computed(() => [
+  { id: "dashboard", label: t("app.nav.dashboard"), icon: LayoutDashboard },
+  { id: "logs", label: t("app.nav.logs"), icon: ScrollText },
+  { id: "analytics", label: t("app.nav.analytics"), icon: BarChart3 },
+  { id: "pricing", label: t("app.nav.pricing"), icon: Coins },
+  { id: "settings", label: t("app.nav.settings"), icon: Settings },
+]);
 
 const themeIcon = computed(() => {
   if (themeMode.value === "system") return Laptop;
@@ -110,9 +128,9 @@ const themeIcon = computed(() => {
 });
 
 const themeLabel = computed(() => {
-  if (themeMode.value === "system") return "自动跟随系统";
-  if (themeMode.value === "light") return "浅色模式";
-  return "深色模式";
+  if (themeMode.value === "system") return t("app.theme.system");
+  if (themeMode.value === "light") return t("app.theme.light");
+  return t("app.theme.dark");
 });
 
 const cycleTheme = () => {
@@ -123,6 +141,26 @@ const cycleTheme = () => {
   } else {
     setThemeMode("system");
   }
+};
+
+const languageModeLabel = computed(() => {
+  if (languageMode.value === "system") return t("app.language.system");
+  if (languageMode.value === "zh-CN") return "简体中文";
+  if (languageMode.value === "zh-TW") return "繁體中文";
+  return "English";
+});
+
+const activeLangBadge = computed(() => {
+  if (currentLocale.value === "zh-CN") return "简";
+  if (currentLocale.value === "zh-TW") return "繁";
+  return "EN";
+});
+
+const cycleLanguage = () => {
+  const modes: LanguageMode[] = ["system", "zh-CN", "zh-TW", "en"];
+  const curIdx = modes.indexOf(languageMode.value);
+  const nextMode = modes[(curIdx + 1) % modes.length];
+  setLanguageMode(nextMode);
 };
 
 const activeComponent = computed(() => {

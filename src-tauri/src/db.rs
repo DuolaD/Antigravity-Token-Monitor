@@ -132,11 +132,7 @@ impl DatabaseService {
 
                     let ws_short = if !workspace.trim().is_empty() {
                         let clean = workspace.trim_end_matches(['/', '\\']);
-                        Path::new(clean)
-                            .file_name()
-                            .and_then(|n| n.to_str())
-                            .unwrap_or(clean)
-                            .to_string()
+                        clean.rsplit(['/', '\\']).next().unwrap_or(clean).to_string()
                     } else {
                         "默认工作区".to_string()
                     };

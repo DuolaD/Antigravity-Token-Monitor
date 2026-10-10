@@ -4,10 +4,10 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          总览看板
+          {{ t('dashboard.title') }}
         </h1>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          实时监控 Google Antigravity 本地模型 Token 消耗与成本
+          {{ t('dashboard.subtitle') }}
         </p>
       </div>
 
@@ -16,8 +16,8 @@
         <div class="relative" ref="currencyMenuRef">
           <button
             @click="isCurrencyMenuOpen = !isCurrencyMenuOpen"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors shadow-xs"
-            title="选择结算货币"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors shadow-xs cursor-pointer"
+            :title="t('dashboard.selectCurrency')"
           >
             <Coins class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             <span>{{ stats?.currency || 'USD' }}</span>
@@ -27,17 +27,19 @@
           <!-- Dropdown popover -->
           <div
             v-if="isCurrencyMenuOpen"
-            class="absolute right-0 mt-1.5 w-44 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl z-50 py-1 overflow-hidden animate-fade-in"
+            class="absolute right-0 mt-1.5 w-48 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl z-50 py-1 overflow-hidden animate-fade-in"
           >
             <button
               v-for="cur in SUPPORTED_CURRENCIES"
               :key="cur.code"
               @click="onSelectCurrency(cur.code)"
-              class="w-full px-3 py-1.5 text-left text-xs flex items-center justify-between transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              class="w-full px-3 py-1.5 text-left text-xs flex items-center justify-between transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
               :class="stats?.currency === cur.code ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-500/10' : 'text-gray-700 dark:text-gray-300'"
             >
               <span>{{ cur.code }} ({{ cur.symbol }})</span>
-              <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ cur.name.split(' ')[0] }}</span>
+              <span class="text-[10px] text-gray-400 dark:text-gray-500">
+                {{ getLocalizedCurrencyName(cur.code, currentLocale) }}
+              </span>
             </button>
           </div>
         </div>
@@ -49,7 +51,7 @@
           class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
         >
           <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isRefreshing }" />
-          <span>立即刷新</span>
+          <span>{{ t('dashboard.refreshNow') }}</span>
         </button>
       </div>
     </div>
@@ -60,7 +62,7 @@
       <div class="card-glass p-4 rounded-xl space-y-3">
         <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
           <BadgeDollarSign class="w-4 h-4" />
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">累计预估花费</span>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ t('dashboard.cards.totalCost') }}</span>
         </div>
         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-baseline">
           <RollingNumber
@@ -70,7 +72,7 @@
           />
         </div>
         <div class="pt-2 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span>今日消耗</span>
+          <span>{{ t('dashboard.cards.todayCost') }}</span>
           <span class="font-semibold text-emerald-600 dark:text-emerald-400 font-mono">
             {{ stats?.currency_symbol || '$' }}{{ (stats?.today_cost || 0).toFixed(4) }}
           </span>
@@ -81,18 +83,18 @@
       <div class="card-glass p-4 rounded-xl space-y-3">
         <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
           <Cpu class="w-4 h-4" />
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">累计总 Tokens</span>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ t('dashboard.cards.totalTokens') }}</span>
         </div>
         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-baseline">
           <RollingNumber :value="stats?.total_tokens || 0" :decimals="0" />
         </div>
         <div class="pt-2 border-t border-gray-100 dark:border-white/5 space-y-1 text-xs">
           <div class="flex items-center justify-between text-gray-500 dark:text-gray-400">
-            <span>输入 Prompt:</span>
+            <span>{{ t('dashboard.cards.inputPrompt') }}</span>
             <span class="font-mono text-gray-700 dark:text-gray-300">{{ (stats?.total_prompt_tokens || 0).toLocaleString() }}</span>
           </div>
           <div class="flex items-center justify-between text-amber-600 dark:text-amber-400">
-            <span>思考 Thinking:</span>
+            <span>{{ t('dashboard.cards.thinking') }}</span>
             <span class="font-mono font-semibold">
               {{ (stats?.total_thinking_tokens || 0).toLocaleString() }} ({{ stats?.thinking_ratio_text || '0%' }})
             </span>
@@ -104,15 +106,15 @@
       <div class="card-glass p-4 rounded-xl space-y-3">
         <div class="flex items-center gap-2 text-purple-600 dark:text-purple-400">
           <MessageSquareCode class="w-4 h-4" />
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">累计请求轮次</span>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ t('dashboard.cards.totalCalls') }}</span>
         </div>
         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-baseline">
           <RollingNumber :value="stats?.total_calls || 0" :decimals="0" />
         </div>
         <div class="pt-2 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span>今日请求</span>
+          <span>{{ t('dashboard.cards.todayCalls') }}</span>
           <span class="font-semibold text-purple-600 dark:text-purple-400 font-mono">
-            {{ stats?.today_calls || 0 }} 次
+            {{ stats?.today_calls || 0 }} {{ t('dashboard.cards.roundsUnit') }}
           </span>
         </div>
       </div>
@@ -121,14 +123,14 @@
       <div class="card-glass p-4 rounded-xl space-y-3">
         <div class="flex items-center gap-2 text-pink-600 dark:text-pink-400">
           <Timer class="w-4 h-4" />
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">平均响应耗时</span>
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ t('dashboard.cards.avgLatency') }}</span>
         </div>
         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-baseline">
           <RollingNumber :value="stats?.avg_latency_seconds || 0" suffix=" s" :decimals="2" />
         </div>
         <div class="pt-2 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span>单轮交互耗时</span>
-          <span class="text-gray-700 dark:text-gray-300">秒级平均响应</span>
+          <span>{{ t('dashboard.cards.perTurnLatency') }}</span>
+          <span class="text-gray-700 dark:text-gray-300">{{ t('dashboard.cards.avgSecResponse') }}</span>
         </div>
       </div>
     </div>
@@ -138,24 +140,24 @@
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <TrendingUp class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Token 消耗趋势折线图</h2>
-          <span class="text-xs text-gray-500 dark:text-gray-400">· {{ activePreset }}</span>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('dashboard.trend.title') }}</h2>
+          <span class="text-xs text-gray-500 dark:text-gray-400">· {{ activePresetLabel }}</span>
         </div>
 
-        <!-- Presets and Custom Range -->
+        <!-- Presets Buttons -->
         <div class="flex items-center flex-wrap gap-1.5 text-xs">
           <button
-            v-for="p in presets"
-            :key="p"
-            @click="setPreset(p)"
+            v-for="p in presetOptions"
+            :key="p.id"
+            @click="setPreset(p.id)"
             :class="[
               'px-2.5 py-1 rounded-md transition-colors cursor-pointer',
-              activePreset === p
+              activePreset === p.id
                 ? 'bg-blue-600 text-white font-semibold'
                 : 'bg-gray-100 dark:bg-gray-800/80 hover:bg-gray-200/80 dark:hover:bg-gray-700/80 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60'
             ]"
           >
-            {{ p }}
+            {{ p.label }}
           </button>
         </div>
       </div>
@@ -171,9 +173,11 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <Cpu class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">模型消耗排行榜</h2>
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('dashboard.rankings.topModels') }}</h2>
           </div>
-          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">共 {{ stats?.top_models.length || 0 }} 个模型</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">
+            {{ t('dashboard.rankings.modelsCount', { n: stats?.top_models.length || 0 }) }}
+          </span>
         </div>
 
         <div class="space-y-3">
@@ -185,7 +189,9 @@
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-gray-800 dark:text-gray-200 font-mono">{{ m.model }}</span>
-                <span class="text-[10px] text-gray-400 dark:text-gray-500">({{ m.calls }} 次)</span>
+                <span class="text-[10px] text-gray-400 dark:text-gray-500">
+                  {{ t('dashboard.rankings.callsCount', { n: m.calls }) }}
+                </span>
               </div>
               <div class="flex items-center gap-2 font-mono">
                 <span class="text-gray-600 dark:text-gray-300">{{ m.tokens.toLocaleString() }}</span>
@@ -208,9 +214,11 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <FolderGit2 class="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">项目/工作区消耗排行</h2>
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('dashboard.rankings.topWorkspaces') }}</h2>
           </div>
-          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">共 {{ stats?.top_workspaces.length || 0 }} 个项目</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">
+            {{ t('dashboard.rankings.workspacesCount', { n: stats?.top_workspaces.length || 0 }) }}
+          </span>
         </div>
 
         <div class="space-y-3">
@@ -222,9 +230,11 @@
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-gray-800 dark:text-gray-200 truncate max-w-[200px]" :title="w.workspace">
-                  {{ w.workspace }}
+                  {{ w.workspace === '默认工作区' ? t('common.defaultWorkspace') : w.workspace }}
                 </span>
-                <span class="text-[10px] text-gray-400 dark:text-gray-500">({{ w.calls }} 次)</span>
+                <span class="text-[10px] text-gray-400 dark:text-gray-500">
+                  {{ t('dashboard.rankings.callsCount', { n: w.calls }) }}
+                </span>
               </div>
               <div class="flex items-center gap-2 font-mono">
                 <span class="text-gray-600 dark:text-gray-300">{{ w.tokens.toLocaleString() }}</span>
@@ -246,7 +256,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import {
@@ -263,7 +273,8 @@ import {
 import type { OverviewStats, TokenTrendPoint } from "../types";
 import RollingNumber from "../components/RollingNumber.vue";
 import TrendChart from "../components/TrendChart.vue";
-import { SUPPORTED_CURRENCIES } from "../services/currency";
+import { SUPPORTED_CURRENCIES, getLocalizedCurrencyName } from "../services/currency";
+import { t, currentLocale } from "../services/i18n";
 
 const stats = ref<OverviewStats | null>(null);
 const trendPoints = ref<TokenTrendPoint[]>([]);
@@ -272,8 +283,21 @@ const isRefreshing = ref(false);
 const isCurrencyMenuOpen = ref(false);
 const currencyMenuRef = ref<HTMLElement | null>(null);
 
-const presets = ["周", "月", "季度", "半年", "-1年", "全部"];
-const activePreset = ref("全部");
+const activePreset = ref("all");
+
+const presetOptions = computed(() => [
+  { id: "week", label: t("dashboard.trend.presets.week") },
+  { id: "month", label: t("dashboard.trend.presets.month") },
+  { id: "quarter", label: t("dashboard.trend.presets.quarter") },
+  { id: "halfYear", label: t("dashboard.trend.presets.halfYear") },
+  { id: "year", label: t("dashboard.trend.presets.year") },
+  { id: "all", label: t("dashboard.trend.presets.all") },
+]);
+
+const activePresetLabel = computed(() => {
+  const opt = presetOptions.value.find((o) => o.id === activePreset.value);
+  return opt ? opt.label : t("dashboard.trend.presets.all");
+});
 
 let unlistenUpdate: UnlistenFn | null = null;
 

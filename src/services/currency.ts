@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { type SupportedLocale } from "./i18n";
 
 // Primary API: Cloudflare Pages mirror (as requested by user)
 export const PRIMARY_API_URL =
@@ -15,6 +16,48 @@ export interface CurrencyOption {
   label: string;
 }
 
+export const CURRENCY_NAMES: Record<SupportedLocale, Record<string, string>> = {
+  "zh-CN": {
+    USD: "美元",
+    CNY: "人民币",
+    EUR: "欧元",
+    JPY: "日元",
+    GBP: "英镑",
+    HKD: "港币",
+    TWD: "新台币",
+    KRW: "韩元",
+    SGD: "新加坡元",
+    CAD: "加拿大元",
+    AUD: "澳大利亚元",
+  },
+  "zh-TW": {
+    USD: "美元",
+    CNY: "人民幣",
+    EUR: "歐元",
+    JPY: "日圓",
+    GBP: "英鎊",
+    HKD: "港幣",
+    TWD: "新台幣",
+    KRW: "韓元",
+    SGD: "新加坡元",
+    CAD: "加拿大元",
+    AUD: "澳大利亞元",
+  },
+  en: {
+    USD: "US Dollar",
+    CNY: "Chinese Yuan",
+    EUR: "Euro",
+    JPY: "Japanese Yen",
+    GBP: "British Pound",
+    HKD: "Hong Kong Dollar",
+    TWD: "New Taiwan Dollar",
+    KRW: "South Korean Won",
+    SGD: "Singapore Dollar",
+    CAD: "Canadian Dollar",
+    AUD: "Australian Dollar",
+  },
+};
+
 export const SUPPORTED_CURRENCIES: CurrencyOption[] = [
   { code: "USD", name: "美元 (USD)", symbol: "$", label: "USD ($)" },
   { code: "CNY", name: "人民币 (CNY)", symbol: "¥", label: "CNY (¥)" },
@@ -29,6 +72,19 @@ export const SUPPORTED_CURRENCIES: CurrencyOption[] = [
   { code: "AUD", name: "澳大利亚元 (AUD)", symbol: "AU$", label: "AUD (AU$)" },
 ];
 
+export function getLocalizedCurrencyName(code: string, locale: SupportedLocale = "zh-CN"): string {
+  const map = CURRENCY_NAMES[locale] || CURRENCY_NAMES["zh-CN"];
+  return map[code.toUpperCase()] || code;
+}
+
+export function getCurrencySymbol(code: string): string {
+  const c = code?.toUpperCase();
+  const found = SUPPORTED_CURRENCIES.find((item) => item.code === c);
+  if (found) return found.symbol;
+  if (c === "RMB") return "¥";
+  return "$";
+}
+
 export const DEFAULT_OFFLINE_RATES: Record<string, number> = {
   USD: 1.0,
   CNY: 7.25,
@@ -42,14 +98,6 @@ export const DEFAULT_OFFLINE_RATES: Record<string, number> = {
   CAD: 1.42,
   AUD: 1.43,
 };
-
-export function getCurrencySymbol(code: string): string {
-  const c = code?.toUpperCase();
-  const found = SUPPORTED_CURRENCIES.find((item) => item.code === c);
-  if (found) return found.symbol;
-  if (c === "RMB") return "¥";
-  return "$";
-}
 
 export interface FetchRatesResult {
   success: boolean;

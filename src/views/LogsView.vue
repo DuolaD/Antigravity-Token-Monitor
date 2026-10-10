@@ -4,10 +4,10 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          日志明细
+          {{ t('logs.title') }}
         </h1>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          查看每一次 LLM 调用的精确输入、输出、思考 Token 与耗时记录
+          {{ t('logs.subtitle') }}
         </p>
       </div>
 
@@ -17,7 +17,7 @@
         class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
       >
         <FileSpreadsheet class="w-3.5 h-3.5" />
-        <span>{{ isExporting ? '正在导出...' : '导出 CSV 报表' }}</span>
+        <span>{{ isExporting ? t('logs.exporting') : t('logs.exportCsv') }}</span>
       </button>
     </div>
 
@@ -29,7 +29,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="搜索标题 / 模型 / UUID..."
+            :placeholder="t('logs.searchPlaceholder')"
             class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-3 py-1.5 text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500"
             @keyup.enter="applyFilter"
           />
@@ -42,10 +42,10 @@
             class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500"
             @change="applyFilter"
           >
-            <option value="全部">全部时间</option>
-            <option value="今天">今天</option>
-            <option value="近7天">近 7 天</option>
-            <option value="近30天">近 30 天</option>
+            <option value="all">{{ t('logs.filters.allTime') }}</option>
+            <option value="today">{{ t('logs.filters.today') }}</option>
+            <option value="7d">{{ t('logs.filters.last7Days') }}</option>
+            <option value="30d">{{ t('logs.filters.last30Days') }}</option>
           </select>
         </div>
 
@@ -56,7 +56,7 @@
             class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500"
             @change="applyFilter"
           >
-            <option value="全部模型">全部模型</option>
+            <option value="all">{{ t('logs.filters.allModels') }}</option>
             <option v-for="m in filterOptions.models" :key="m" :value="m">
               {{ m }}
             </option>
@@ -70,9 +70,9 @@
             class="w-full bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700/80 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500"
             @change="applyFilter"
           >
-            <option value="全部工作区">全部工作区</option>
+            <option value="all">{{ t('logs.filters.allWorkspaces') }}</option>
             <option v-for="w in filterOptions.workspaces" :key="w" :value="w">
-              {{ w }}
+              {{ w === '默认工作区' ? t('common.defaultWorkspace') : w }}
             </option>
           </select>
         </div>
@@ -84,12 +84,12 @@
             class="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors cursor-pointer"
           >
             <Filter class="w-3.5 h-3.5" />
-            <span>筛选</span>
+            <span>{{ t('logs.filters.filterBtn') }}</span>
           </button>
           <button
             @click="resetFilter"
             class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
-            title="重置筛选条件"
+            :title="t('logs.filters.resetBtnTooltip')"
           >
             <RotateCcw class="w-3.5 h-3.5" />
           </button>
@@ -103,22 +103,22 @@
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-gray-100/70 dark:bg-gray-900/90 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-semibold select-none">
-              <th class="py-3 px-3.5 w-36">时间</th>
-              <th class="py-3 px-3.5 min-w-[200px]">对话 / 项目工作区</th>
-              <th class="py-3 px-3.5 w-40">模型</th>
-              <th class="py-3 px-3 w-24 text-right">提示 Tokens</th>
-              <th class="py-3 px-3 w-24 text-right">补全 Tokens</th>
-              <th class="py-3 px-3 w-24 text-right text-amber-600 dark:text-amber-400">思考 Tokens</th>
-              <th class="py-3 px-3 w-28 text-right font-bold text-gray-700 dark:text-gray-300">总计 Tokens</th>
-              <th class="py-3 px-3 w-20 text-right">耗时</th>
-              <th class="py-3 px-3.5 w-24 text-right">费用</th>
-              <th class="py-3 px-2 w-12 text-center">详情</th>
+              <th class="py-3 px-3.5 w-36">{{ t('logs.table.time') }}</th>
+              <th class="py-3 px-3.5 min-w-[200px]">{{ t('logs.table.dialogWorkspace') }}</th>
+              <th class="py-3 px-3.5 w-40">{{ t('logs.table.model') }}</th>
+              <th class="py-3 px-3 w-24 text-right">{{ t('logs.table.promptTokens') }}</th>
+              <th class="py-3 px-3 w-24 text-right">{{ t('logs.table.completionTokens') }}</th>
+              <th class="py-3 px-3 w-24 text-right text-amber-600 dark:text-amber-400">{{ t('logs.table.thinkingTokens') }}</th>
+              <th class="py-3 px-3 w-28 text-right font-bold text-gray-700 dark:text-gray-300">{{ t('logs.table.totalTokens') }}</th>
+              <th class="py-3 px-3 w-20 text-right">{{ t('logs.table.latency') }}</th>
+              <th class="py-3 px-3.5 w-24 text-right">{{ t('logs.table.cost') }}</th>
+              <th class="py-3 px-2 w-12 text-center">{{ t('logs.table.details') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono">
             <tr v-if="logs.items.length === 0">
               <td colspan="10" class="py-12 text-center text-gray-400 dark:text-gray-500">
-                暂无符合条件的调用日志记录
+                {{ t('logs.table.empty') }}
               </td>
             </tr>
             <tr
@@ -137,7 +137,7 @@
                   {{ item.title }}
                 </div>
                 <div class="text-[11px] text-gray-400 dark:text-gray-500 truncate max-w-[280px]" :title="item.workspace_full">
-                  {{ item.workspace }}
+                  {{ item.workspace === '默认工作区' ? t('common.defaultWorkspace') : item.workspace }}
                 </div>
               </td>
 
@@ -183,7 +183,7 @@
                 <button
                   @click="openDetail(item)"
                   class="p-1 rounded text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                  title="查看完整调用参数"
+                  :title="t('logs.table.viewDetailsTooltip')"
                 >
                   <Eye class="w-3.5 h-3.5" />
                 </button>
@@ -196,7 +196,7 @@
       <!-- Pagination Footer -->
       <div class="p-3.5 bg-gray-50/80 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 select-none">
         <div>
-          第 {{ logs.page }} 页 / 共 {{ logs.total_pages }} 页 (共 {{ logs.total_count }} 条记录)
+          {{ t('logs.pagination.pageInfo', { page: logs.page, pages: logs.total_pages, total: logs.total_count }) }}
         </div>
 
         <div class="flex items-center gap-2">
@@ -206,14 +206,14 @@
             class="px-2.5 py-1 rounded bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-gray-800 border border-gray-200 dark:border-transparent text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
           >
             <ChevronLeft class="w-3.5 h-3.5" />
-            <span>上一页</span>
+            <span>{{ t('logs.pagination.prev') }}</span>
           </button>
           <button
             @click="changePage(logs.page + 1)"
             :disabled="logs.page >= logs.total_pages"
             class="px-2.5 py-1 rounded bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-gray-800 border border-gray-200 dark:border-transparent text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
           >
-            <span>下一页</span>
+            <span>{{ t('logs.pagination.next') }}</span>
             <ChevronRight class="w-3.5 h-3.5" />
           </button>
         </div>
@@ -230,7 +230,7 @@
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
           <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
             <Info class="w-4 h-4" />
-            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">单次调用元数据详情</h3>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ t('logs.modal.title') }}</h3>
           </div>
           <button
             @click="activeDetailItem = null"
@@ -242,45 +242,45 @@
 
         <div class="space-y-2 text-xs font-mono">
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">调用标识 (ID):</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.callId') }}</span>
             <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.id }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">会话 UUID:</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.convUuid') }}</span>
             <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.conversation_id }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">调用时间:</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.callTime') }}</span>
             <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.timestamp }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">模型名称:</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.modelName') }}</span>
             <span class="text-sky-600 dark:text-sky-400 font-semibold">{{ activeDetailItem.model }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">所属工作区:</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.workspace') }}</span>
             <span class="text-gray-800 dark:text-gray-200 truncate max-w-[280px]" :title="activeDetailItem.workspace_full">
-              {{ activeDetailItem.workspace_full || activeDetailItem.workspace }}
+              {{ activeDetailItem.workspace_full || (activeDetailItem.workspace === '默认工作区' ? t('common.defaultWorkspace') : activeDetailItem.workspace) }}
             </span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">Prompt Tokens:</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.promptTokens') }}</span>
             <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.prompt_tokens.toLocaleString() }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">Candidate Tokens:</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.candidateTokens') }}</span>
             <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.candidate_tokens.toLocaleString() }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-amber-600 dark:text-amber-400">Thinking Tokens:</span>
+            <span class="text-amber-600 dark:text-amber-400">{{ t('logs.modal.thinkingTokens') }}</span>
             <span class="text-amber-600 dark:text-amber-400 font-bold">{{ activeDetailItem.thinking_tokens.toLocaleString() }}</span>
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
-            <span class="text-gray-500 dark:text-gray-400">耗时 (Latency):</span>
+            <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.latency') }}</span>
             <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.latency_ms }} ms</span>
           </div>
           <div class="flex justify-between py-1">
-            <span class="text-emerald-600 dark:text-emerald-400">预估结算费用:</span>
+            <span class="text-emerald-600 dark:text-emerald-400">{{ t('logs.modal.cost') }}</span>
             <span class="text-emerald-600 dark:text-emerald-400 font-bold">
               {{ getCurrencySymbol(activeDetailItem.currency) }}{{ activeDetailItem.cost }} {{ activeDetailItem.currency }}
             </span>
@@ -292,7 +292,7 @@
             @click="activeDetailItem = null"
             class="px-4 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors cursor-pointer"
           >
-            关闭
+            {{ t('logs.modal.close') }}
           </button>
         </div>
       </div>
@@ -315,11 +315,12 @@ import {
 } from "lucide-vue-next";
 import type { FilterOptions, PagedLogsResult, TokenCallItem } from "../types";
 import { getCurrencySymbol } from "../services/currency";
+import { t, currentLocale } from "../services/i18n";
 
 const searchQuery = ref("");
-const selectedDateRange = ref("全部");
-const selectedModel = ref("全部模型");
-const selectedWorkspace = ref("全部工作区");
+const selectedDateRange = ref("all");
+const selectedModel = ref("all");
+const selectedWorkspace = ref("all");
 
 const filterOptions = reactive<FilterOptions>({
   models: [],
@@ -352,10 +353,10 @@ const fetchLogs = async (page = 1) => {
     const res = await invoke<PagedLogsResult>("get_paged_logs", {
       page,
       pageSize: 15,
-      modelFilter: selectedModel.value === "全部模型" ? null : selectedModel.value,
-      wsFilter: selectedWorkspace.value === "全部工作区" ? null : selectedWorkspace.value,
+      modelFilter: selectedModel.value === "all" || selectedModel.value === "全部模型" ? null : selectedModel.value,
+      wsFilter: selectedWorkspace.value === "all" || selectedWorkspace.value === "全部工作区" ? null : selectedWorkspace.value,
       searchQuery: searchQuery.value ? searchQuery.value : null,
-      dateRange: selectedDateRange.value === "全部" ? null : selectedDateRange.value,
+      dateRange: selectedDateRange.value === "all" || selectedDateRange.value === "全部" ? null : selectedDateRange.value,
     });
     logs.items = res.items;
     logs.total_count = res.total_count;
@@ -373,9 +374,9 @@ const applyFilter = () => {
 
 const resetFilter = () => {
   searchQuery.value = "";
-  selectedDateRange.value = "全部";
-  selectedModel.value = "全部模型";
-  selectedWorkspace.value = "全部工作区";
+  selectedDateRange.value = "all";
+  selectedModel.value = "all";
+  selectedWorkspace.value = "all";
   fetchLogs(1);
 };
 
@@ -393,10 +394,11 @@ const exportCsv = async () => {
   isExporting.value = true;
   try {
     const csvContent = await invoke<string>("export_logs_csv", {
-      modelFilter: selectedModel.value === "全部模型" ? null : selectedModel.value,
-      wsFilter: selectedWorkspace.value === "全部工作区" ? null : selectedWorkspace.value,
+      modelFilter: selectedModel.value === "all" || selectedModel.value === "全部模型" ? null : selectedModel.value,
+      wsFilter: selectedWorkspace.value === "all" || selectedWorkspace.value === "全部工作区" ? null : selectedWorkspace.value,
       searchQuery: searchQuery.value ? searchQuery.value : null,
-      dateRange: selectedDateRange.value === "全部" ? null : selectedDateRange.value,
+      dateRange: selectedDateRange.value === "all" || selectedDateRange.value === "全部" ? null : selectedDateRange.value,
+      lang: currentLocale.value,
     });
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });

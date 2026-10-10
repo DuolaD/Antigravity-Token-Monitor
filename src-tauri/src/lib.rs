@@ -176,5 +176,36 @@ mod tests {
         assert!((cost_jpy - (4.50 * 158.32)).abs() < 1e-3);
         assert_eq!(PricingService::get_currency_symbol("JPY"), "¥");
     }
+
+    #[test]
+    fn test_multilingual_csv_headers() {
+        let pricing = Arc::new(PricingService::new_defaults_only());
+        let data = TokenDataService::new(pricing);
+
+        let csv_zh_cn = data.export_logs_csv(None, None, None, None, Some("zh-CN"));
+        assert!(csv_zh_cn.starts_with("\u{FEFF}时间,对话标题,项目工作区,模型"));
+
+        let csv_zh_tw = data.export_logs_csv(None, None, None, None, Some("zh-TW"));
+        assert!(csv_zh_tw.starts_with("\u{FEFF}時間,對話標題,專案工作區,模型"));
+
+        let csv_en = data.export_logs_csv(None, None, None, None, Some("en"));
+        assert!(csv_en.starts_with("\u{FEFF}Time,Conversation Title,Workspace,Model"));
+    }
+
+    #[test]
+    fn test_multilingual_trend_and_filter_presets() {
+        let pricing = Arc::new(PricingService::new_defaults_only());
+        let data = TokenDataService::new(pricing);
+
+        let t_week = data.get_trend_data("week", None, None);
+        let t_zh_week = data.get_trend_data("周", None, None);
+        assert_eq!(t_week.len(), t_zh_week.len());
+        assert_eq!(t_week.len(), 7);
+
+        let t_month = data.get_trend_data("month", None, None);
+        let t_zh_month = data.get_trend_data("月", None, None);
+        assert_eq!(t_month.len(), t_zh_month.len());
+        assert_eq!(t_month.len(), 30);
+    }
 }
 

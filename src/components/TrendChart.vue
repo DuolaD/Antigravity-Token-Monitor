@@ -2,7 +2,7 @@
   <div ref="containerRef" class="relative w-full h-[280px] select-none" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
     <!-- Empty State -->
     <div v-if="!hasData" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
-      <span>暂无该时间段内的 Token 消耗记录</span>
+      <span>{{ t('chart.empty') }}</span>
     </div>
 
     <!-- Chart SVG -->
@@ -87,31 +87,31 @@
       :style="tooltipStyle"
     >
       <div class="font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-800 pb-1.5 mb-2 flex items-center justify-between">
-        <span>{{ activeData.full_date_label }}</span>
+        <span>{{ formatFullDate(activeData.date || activeData.full_date_label) }}</span>
         <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono">
-          {{ activeData.calls }} 次调用
+          {{ t('chart.calls', { calls: activeData.calls }) }}
         </span>
       </div>
 
       <div class="space-y-1 font-mono">
         <div class="flex justify-between items-center text-gray-500 dark:text-gray-400">
-          <span>总计 Tokens:</span>
+          <span>{{ t('chart.totalTokens') }}</span>
           <span class="text-blue-600 dark:text-blue-400 font-bold">{{ activeData.total_tokens.toLocaleString() }}</span>
         </div>
         <div class="flex justify-between items-center text-gray-500 dark:text-gray-400">
-          <span>输入 Prompt:</span>
+          <span>{{ t('chart.inputPrompt') }}</span>
           <span class="text-gray-700 dark:text-gray-300">{{ activeData.prompt_tokens.toLocaleString() }}</span>
         </div>
         <div class="flex justify-between items-center text-gray-500 dark:text-gray-400">
-          <span>输出 Output:</span>
+          <span>{{ t('chart.output') }}</span>
           <span class="text-gray-700 dark:text-gray-300">{{ activeData.output_tokens.toLocaleString() }}</span>
         </div>
         <div class="flex justify-between items-center text-amber-500 dark:text-amber-400">
-          <span>思考 Thinking:</span>
+          <span>{{ t('chart.thinking') }}</span>
           <span>{{ activeData.thinking_tokens.toLocaleString() }}</span>
         </div>
         <div class="flex justify-between items-center text-emerald-600 dark:text-emerald-400 pt-1 border-t border-gray-100 dark:border-gray-800/80 font-semibold">
-          <span>折算费用:</span>
+          <span>{{ t('chart.estimatedCost') }}</span>
           <span>{{ currencySymbol }}{{ activeData.cost.toFixed(4) }}</span>
         </div>
       </div>
@@ -123,6 +123,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import type { TokenTrendPoint } from "../types";
 import { activeTheme } from "../services/theme";
+import { t, currentLocale } from "../services/i18n";
 
 const props = withDefaults(
   defineProps<{
@@ -179,7 +180,6 @@ const maxVal = computed(() => {
   const m = Math.max(...props.data.map((p) => p.total_tokens), 0);
   if (m <= 0) return 1000;
 
-  // Nice ceiling
   const exp = Math.floor(Math.log10(m));
   const factor = Math.pow(10, exp);
   const normalized = m / factor;
@@ -196,6 +196,22 @@ const formatShortNumber = (num: number) => {
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
   if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
   return num.toString();
+};
+
+const formatFullDate = (raw: string) => {
+  if (!raw) return "";
+  // Check if raw is YYYY-MM-DD
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) {
+    const [, year, month, day] = m;
+    if (currentLocale.value === "en") {
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const mIdx = parseInt(month, 10) - 1;
+      return `${monthNames[mIdx] || month} ${parseInt(day, 10)}, ${year}`;
+    }
+    return `${year}年${parseInt(month, 10)}月${parseInt(day, 10)}日`;
+  }
+  return raw;
 };
 
 const gridLines = computed(() => {

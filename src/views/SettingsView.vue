@@ -3,24 +3,24 @@
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-        系统设置
+        {{ t('settings.title') }}
       </h1>
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-        配置外观主题、数据探测源、高频实时同步与应用偏好
+        {{ t('settings.subtitle') }}
       </p>
     </div>
 
-    <!-- Appearance Theme Card (macOS Style) -->
+    <!-- Appearance Theme Card (macOS / WinUI Style) -->
     <div class="card-glass p-5 rounded-xl space-y-4">
       <div class="flex items-center gap-2 text-blue-500 dark:text-blue-400">
         <SunMoon class="w-4 h-4" />
-        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">外观主题</h2>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('settings.appearance.title') }}</h2>
       </div>
       <p class="text-[11px] text-gray-500 dark:text-gray-400">
-        选择应用视觉主题模式。设置为跟随系统时，将自动响应操作系统深色/浅色外观切换。
+        {{ t('settings.appearance.desc') }}
       </p>
 
-      <!-- 3 Theme Options mimicking macOS Settings Appearance -->
+      <!-- 3 Theme Options mimicking Settings Appearance -->
       <div class="grid grid-cols-3 gap-4 pt-1 max-w-md">
         <!-- Light Theme Option -->
         <button
@@ -68,7 +68,7 @@
                 : 'text-gray-600 dark:text-gray-400 font-medium'
             ]"
           >
-            浅色
+            {{ t('settings.appearance.light') }}
           </span>
         </button>
 
@@ -118,7 +118,7 @@
                 : 'text-gray-600 dark:text-gray-400 font-medium'
             ]"
           >
-            深色
+            {{ t('settings.appearance.dark') }}
           </span>
         </button>
 
@@ -176,7 +176,7 @@
                 : 'text-gray-600 dark:text-gray-400 font-medium'
             ]"
           >
-            自动 (跟随系统)
+            {{ t('settings.appearance.system') }}
           </span>
         </button>
       </div>
@@ -186,8 +186,105 @@
         <div class="flex items-center gap-1.5">
           <span class="w-1.5 h-1.5 rounded-full" :class="activeTheme === 'dark' ? 'bg-indigo-400' : 'bg-amber-400'"></span>
           <span>
-            当前生效外观：<strong class="text-gray-700 dark:text-gray-200">{{ activeTheme === 'dark' ? '深色模式' : '浅色模式' }}</strong>
-            <span v-if="themeMode === 'system'" class="text-gray-400">（已与操作系统同步）</span>
+            {{ t('settings.appearance.currentTheme') }}<strong class="text-gray-700 dark:text-gray-200">{{ activeTheme === 'dark' ? t('settings.appearance.dark') : t('settings.appearance.light') }}</strong>
+            <span v-if="themeMode === 'system'" class="text-gray-400">{{ t('settings.appearance.syncedWithOS') }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Language Settings Card (Tri-lingual + Auto follow system) -->
+    <div class="card-glass p-5 rounded-xl space-y-4">
+      <div class="flex items-center gap-2 text-sky-500 dark:text-sky-400">
+        <Globe class="w-4 h-4" />
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('settings.language.title') }}</h2>
+      </div>
+      <p class="text-[11px] text-gray-500 dark:text-gray-400">
+        {{ t('settings.language.desc') }}
+      </p>
+
+      <!-- 4 Language Options Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+        <!-- Follow System Option -->
+        <button
+          type="button"
+          @click="onSelectLanguage('system')"
+          :class="[
+            'p-3 rounded-xl border flex flex-col items-start gap-1 text-left transition-all duration-150 cursor-pointer relative',
+            languageMode === 'system'
+              ? 'ring-2 ring-sky-500 border-sky-500 bg-sky-50/60 dark:bg-sky-950/30'
+              : 'border-gray-200 dark:border-gray-700/80 bg-white/60 dark:bg-gray-900/40 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          ]"
+        >
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ t('settings.language.system') }}</span>
+            <Check v-if="languageMode === 'system'" class="w-3.5 h-3.5 text-sky-500 stroke-[3]" />
+          </div>
+          <span class="text-[10px] text-gray-400 dark:text-gray-500">Auto Detect</span>
+        </button>
+
+        <!-- Simplified Chinese Option -->
+        <button
+          type="button"
+          @click="onSelectLanguage('zh-CN')"
+          :class="[
+            'p-3 rounded-xl border flex flex-col items-start gap-1 text-left transition-all duration-150 cursor-pointer relative',
+            languageMode === 'zh-CN'
+              ? 'ring-2 ring-sky-500 border-sky-500 bg-sky-50/60 dark:bg-sky-950/30'
+              : 'border-gray-200 dark:border-gray-700/80 bg-white/60 dark:bg-gray-900/40 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          ]"
+        >
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ t('settings.language.zhCN') }}</span>
+            <Check v-if="languageMode === 'zh-CN'" class="w-3.5 h-3.5 text-sky-500 stroke-[3]" />
+          </div>
+          <span class="text-[10px] text-gray-400 dark:text-gray-500">简体中文 (zh-CN)</span>
+        </button>
+
+        <!-- Traditional Chinese Option -->
+        <button
+          type="button"
+          @click="onSelectLanguage('zh-TW')"
+          :class="[
+            'p-3 rounded-xl border flex flex-col items-start gap-1 text-left transition-all duration-150 cursor-pointer relative',
+            languageMode === 'zh-TW'
+              ? 'ring-2 ring-sky-500 border-sky-500 bg-sky-50/60 dark:bg-sky-950/30'
+              : 'border-gray-200 dark:border-gray-700/80 bg-white/60 dark:bg-gray-900/40 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          ]"
+        >
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ t('settings.language.zhTW') }}</span>
+            <Check v-if="languageMode === 'zh-TW'" class="w-3.5 h-3.5 text-sky-500 stroke-[3]" />
+          </div>
+          <span class="text-[10px] text-gray-400 dark:text-gray-500">繁體中文 (zh-TW)</span>
+        </button>
+
+        <!-- English Option -->
+        <button
+          type="button"
+          @click="onSelectLanguage('en')"
+          :class="[
+            'p-3 rounded-xl border flex flex-col items-start gap-1 text-left transition-all duration-150 cursor-pointer relative',
+            languageMode === 'en'
+              ? 'ring-2 ring-sky-500 border-sky-500 bg-sky-50/60 dark:bg-sky-950/30'
+              : 'border-gray-200 dark:border-gray-700/80 bg-white/60 dark:bg-gray-900/40 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          ]"
+        >
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ t('settings.language.en') }}</span>
+            <Check v-if="languageMode === 'en'" class="w-3.5 h-3.5 text-sky-500 stroke-[3]" />
+          </div>
+          <span class="text-[10px] text-gray-400 dark:text-gray-500">English (en-US)</span>
+        </button>
+      </div>
+
+      <!-- Language Status Line -->
+      <div class="pt-2 text-[11px] text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+          <span>
+            {{ t('settings.language.currentLang') }}<strong class="text-gray-700 dark:text-gray-200">{{ currentLocaleLabel }}</strong>
+            <span v-if="languageMode === 'system'" class="text-gray-400">{{ t('settings.language.syncedWithOS') }}</span>
           </span>
         </div>
       </div>
@@ -197,16 +294,16 @@
     <div class="card-glass p-5 rounded-xl space-y-4">
       <div class="flex items-center gap-2 text-blue-500 dark:text-blue-400">
         <Activity class="w-4 h-4" />
-        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">实时监听与心跳刷新</h2>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('settings.liveSync.title') }}</h2>
       </div>
 
       <div class="flex items-center justify-between pt-2">
         <div class="space-y-1">
           <div class="text-xs font-semibold text-gray-800 dark:text-gray-200">
-            启用 1 秒级动态心跳探测
+            {{ t('settings.liveSync.label') }}
           </div>
           <div class="text-[11px] text-gray-500 dark:text-gray-400">
-            开启后应用将在后台双轨检测 SQLite WAL 写入，对话产生时毫秒级跳动更新看板与统计
+            {{ t('settings.liveSync.desc') }}
           </div>
         </div>
 
@@ -232,10 +329,10 @@
     <div class="card-glass p-5 rounded-xl space-y-4">
       <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
         <FolderSearch class="w-4 h-4" />
-        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">已探测并绑定的 Antigravity 数据源</h2>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('settings.dataSource.title') }}</h2>
       </div>
       <p class="text-[11px] text-gray-500 dark:text-gray-400">
-        系统根据操作系统环境自动识别并挂载以下会话存储路径中的 .db 数据库文件：
+        {{ t('settings.dataSource.desc') }}
       </p>
 
       <div class="space-y-2 pt-1 font-mono text-xs">
@@ -243,7 +340,7 @@
           v-if="settings.monitored_paths.length === 0"
           class="p-3 rounded-lg bg-gray-100 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 text-gray-500"
         >
-          暂未发现默认 Antigravity 会话目录，请确认 Antigravity 已在本地生成对话记录。
+          {{ t('settings.dataSource.empty') }}
         </div>
 
         <div
@@ -261,16 +358,16 @@
     <div class="card-glass p-5 rounded-xl space-y-3">
       <div class="flex items-center gap-2 text-purple-500 dark:text-purple-400">
         <Info class="w-4 h-4" />
-        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">关于 Antigravity Token Monitor</h2>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('settings.about.title') }}</h2>
       </div>
 
       <div class="space-y-1.5 text-xs text-gray-500 dark:text-gray-400">
         <p class="text-gray-800 dark:text-gray-300 font-medium">
-          专为 Google Antigravity 设计的原生 Token 计量与费用监控客户端
+          {{ t('settings.about.desc') }}
         </p>
-        <p>运行平台: {{ settings.os_name }} | 架构核心: Tauri v2 + Rust 高性能底层</p>
+        <p>{{ t('settings.about.platform', { os: settings.os_name }) }}</p>
         <p class="text-[11px] text-gray-400 dark:text-gray-500 pt-1">
-          版本: v{{ settings.app_version }} (轻量版 · 内存占用超低 · 跨平台通用)
+          {{ t('settings.about.version', { version: settings.app_version }) }}
         </p>
       </div>
     </div>
@@ -278,7 +375,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from "vue";
+import { reactive, computed, onMounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import {
   SunMoon,
@@ -287,9 +384,17 @@ import {
   FolderSearch,
   CheckCircle2,
   Info,
+  Globe,
 } from "lucide-vue-next";
 import type { SystemSettingsInfo } from "../types";
 import { themeMode, activeTheme, setThemeMode, type ThemeMode } from "../services/theme";
+import {
+  t,
+  languageMode,
+  currentLocale,
+  setLanguageMode,
+  type LanguageMode,
+} from "../services/i18n";
 
 const settings = reactive<SystemSettingsInfo>({
   monitored_paths: [],
@@ -301,6 +406,16 @@ const settings = reactive<SystemSettingsInfo>({
 const onSelectTheme = (mode: ThemeMode) => {
   setThemeMode(mode);
 };
+
+const onSelectLanguage = (mode: LanguageMode) => {
+  setLanguageMode(mode);
+};
+
+const currentLocaleLabel = computed(() => {
+  if (currentLocale.value === "zh-CN") return "简体中文 (zh-CN)";
+  if (currentLocale.value === "zh-TW") return "繁體中文 (zh-TW)";
+  return "English (en)";
+});
 
 const fetchSettings = async () => {
   try {

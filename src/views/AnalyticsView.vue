@@ -4,10 +4,10 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          统计分析
+          {{ t('analytics.title') }}
         </h1>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          深度分析每日 Token 走势、思考深度 (Thinking Token) 与调用频次
+          {{ t('analytics.subtitle') }}
         </p>
       </div>
 
@@ -16,7 +16,7 @@
         class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 transition-colors border border-gray-200 dark:border-gray-700 shadow-xs cursor-pointer"
       >
         <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isRefreshing }" />
-        <span>刷新分析</span>
+        <span>{{ t('analytics.refresh') }}</span>
       </button>
     </div>
 
@@ -24,29 +24,29 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <!-- Card 1: Active Days Span -->
       <div class="card-glass p-5 rounded-xl space-y-2">
-        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">累计活跃统计跨度</span>
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ t('analytics.cards.activeDays') }}</span>
         <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono">
-          {{ dailyStats.length }} <span class="text-xs text-gray-500 dark:text-gray-400 font-sans">个活跃日</span>
+          {{ dailyStats.length }} <span class="text-xs text-gray-500 dark:text-gray-400 font-sans">{{ t('analytics.cards.activeDaysUnit') }}</span>
         </div>
-        <p class="text-[11px] text-gray-400 dark:text-gray-500">按本地 SQLite 对话时间跨度归集</p>
+        <p class="text-[11px] text-gray-400 dark:text-gray-500">{{ t('analytics.cards.activeDaysDesc') }}</p>
       </div>
 
       <!-- Card 2: Avg Daily Tokens -->
       <div class="card-glass p-5 rounded-xl space-y-2">
-        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">日均 Token 吞吐量</span>
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ t('analytics.cards.avgDailyTokens') }}</span>
         <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
           {{ avgDailyTokens.toLocaleString() }}
         </div>
-        <p class="text-[11px] text-gray-400 dark:text-gray-500">平均每个活跃日消耗的 Tokens</p>
+        <p class="text-[11px] text-gray-400 dark:text-gray-500">{{ t('analytics.cards.avgDailyDesc') }}</p>
       </div>
 
       <!-- Card 3: Overall Thinking Ratio -->
       <div class="card-glass p-5 rounded-xl space-y-2">
-        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">全局显式思考 Token 占比</span>
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ t('analytics.cards.thinkingRatio') }}</span>
         <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 font-mono">
           {{ overallThinkingRatioText }}
         </div>
-        <p class="text-[11px] text-gray-400 dark:text-gray-500">Thinking Tokens 占模型总输出的百分比</p>
+        <p class="text-[11px] text-gray-400 dark:text-gray-500">{{ t('analytics.cards.thinkingRatioDesc') }}</p>
       </div>
     </div>
 
@@ -55,29 +55,31 @@
       <div class="p-4 bg-gray-50/80 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <CalendarDays class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">按自然日归集明细历史</h2>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ t('analytics.table.title') }}</h2>
         </div>
-        <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">共 {{ dailyStats.length }} 天记录</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+          {{ t('analytics.table.daysCount', { n: dailyStats.length }) }}
+        </span>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-gray-100/70 dark:bg-gray-900/90 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 font-semibold select-none">
-              <th class="py-3 px-4 w-32">日期</th>
-              <th class="py-3 px-4 text-right">输入 Tokens</th>
-              <th class="py-3 px-4 text-right">补全 Tokens</th>
-              <th class="py-3 px-4 text-right text-amber-600 dark:text-amber-400">思考 Tokens</th>
-              <th class="py-3 px-4 text-right text-amber-600 dark:text-amber-400">思考占比</th>
-              <th class="py-3 px-4 text-right font-bold text-gray-700 dark:text-gray-300">每日总计</th>
-              <th class="py-3 px-4 text-right">调用次数</th>
-              <th class="py-3 px-4 text-right text-emerald-600 dark:text-emerald-400">折算费用</th>
+              <th class="py-3 px-4 w-32">{{ t('analytics.table.date') }}</th>
+              <th class="py-3 px-4 text-right">{{ t('analytics.table.inputTokens') }}</th>
+              <th class="py-3 px-4 text-right">{{ t('analytics.table.completionTokens') }}</th>
+              <th class="py-3 px-4 text-right text-amber-600 dark:text-amber-400">{{ t('analytics.table.thinkingTokens') }}</th>
+              <th class="py-3 px-4 text-right text-amber-600 dark:text-amber-400">{{ t('analytics.table.thinkingRatio') }}</th>
+              <th class="py-3 px-4 text-right font-bold text-gray-700 dark:text-gray-300">{{ t('analytics.table.dailyTotal') }}</th>
+              <th class="py-3 px-4 text-right">{{ t('analytics.table.calls') }}</th>
+              <th class="py-3 px-4 text-right text-emerald-600 dark:text-emerald-400">{{ t('analytics.table.cost') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono">
             <tr v-if="dailyStats.length === 0">
               <td colspan="8" class="py-12 text-center text-gray-400 dark:text-gray-500">
-                暂无每日历史统计数据
+                {{ t('analytics.table.empty') }}
               </td>
             </tr>
             <tr
@@ -104,7 +106,7 @@
                 {{ d.total_tokens.toLocaleString() }}
               </td>
               <td class="py-2.5 px-4 text-right text-gray-700 dark:text-gray-300">
-                {{ d.calls }} 次
+                {{ d.calls }} {{ t('analytics.table.callsUnit') }}
               </td>
               <td class="py-2.5 px-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">
                 {{ currencySymbol }}{{ d.cost.toFixed(4) }}
@@ -122,6 +124,7 @@ import { ref, computed, onMounted } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { RotateCw, CalendarDays } from "lucide-vue-next";
 import type { DailyTokenStat, OverviewStats } from "../types";
+import { t } from "../services/i18n";
 
 const dailyStats = ref<DailyTokenStat[]>([]);
 const currencySymbol = ref("$");

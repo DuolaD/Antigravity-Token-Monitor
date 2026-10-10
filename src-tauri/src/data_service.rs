@@ -8,7 +8,7 @@ use crate::summaries::SummariesService;
 use chrono::{Duration, Local, NaiveDate, TimeZone};
 use std::collections::HashMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use std::time::SystemTime;
 
@@ -22,15 +22,33 @@ pub struct TokenDataService {
 impl TokenDataService {
     pub fn new(pricing_service: Arc<PricingService>) -> Self {
         let mut dirs_list = Vec::new();
-        if let Some(home) = dirs::home_dir() {
-            let agy_conv = home.join(".gemini").join("antigravity").join("conversations");
-            let ide_conv = home.join(".gemini").join("antigravity-ide").join("conversations");
+        let mut candidate_bases = Vec::new();
 
-            if agy_conv.exists() {
-                dirs_list.push(agy_conv);
+        if let Some(home) = dirs::home_dir() {
+            candidate_bases.push(home.join(".gemini").join("antigravity"));
+            candidate_bases.push(home.join(".gemini").join("antigravity-ide"));
+            candidate_bases.push(home.join(".antigravity"));
+        }
+        if let Some(config_dir) = dirs::config_dir() {
+            candidate_bases.push(config_dir.join("antigravity"));
+            candidate_bases.push(config_dir.join("Google").join("antigravity"));
+        }
+        if let Some(data_local) = dirs::data_local_dir() {
+            candidate_bases.push(data_local.join("antigravity"));
+            candidate_bases.push(data_local.join("Google").join("antigravity"));
+        }
+
+        for base in candidate_bases {
+            let conv = base.join("conversations");
+            if conv.exists() && !dirs_list.contains(&conv) {
+                dirs_list.push(conv);
             }
-            if ide_conv.exists() {
-                dirs_list.push(ide_conv);
+        }
+
+        // Default fallback path for display/watcher if not created yet
+        if dirs_list.is_empty() {
+            if let Some(home) = dirs::home_dir() {
+                dirs_list.push(home.join(".gemini").join("antigravity").join("conversations"));
             }
         }
 
@@ -48,11 +66,23 @@ impl TokenDataService {
             None => return,
         };
 
-        let summaries_path = home
-            .join(".gemini")
-            .join("antigravity")
-            .join("agyhub_summaries_proto.pb");
-        let summaries_meta = SummariesService::parse_summaries(&summaries_path);
+        let mut summaries_meta = HashMap::new();
+        for dir in &self.monitored_directories {
+            if let Some(parent) = dir.parent() {
+                let p = parent.join("agyhub_summaries_proto.pb");
+                if p.exists() {
+                    let parsed = SummariesService::parse_summaries(&p);
+                    summaries_meta.extend(parsed);
+                }
+            }
+        }
+        if summaries_meta.is_empty() {
+            let summaries_path = home
+                .join(".gemini")
+                .join("antigravity")
+                .join("agyhub_summaries_proto.pb");
+            summaries_meta = SummariesService::parse_summaries(&summaries_path);
+        }
 
         for dir in &self.monitored_directories {
             if !dir.exists() {
@@ -95,14 +125,25 @@ impl TokenDataService {
                     workspace = meta.1.clone();
                 }
 
-                let brain_transcript = home
-                    .join(".gemini")
-                    .join("antigravity")
-                    .join("brain")
-                    .join(&conv_id)
-                    .join(".system_generated")
-                    .join("logs")
-                    .join("transcript.jsonl");
+                let brain_transcript = dir
+                    .parent()
+                    .map(|p| {
+                        p.join("brain")
+                            .join(&conv_id)
+                            .join(".system_generated")
+                            .join("logs")
+                            .join("transcript.jsonl")
+                    })
+                    .filter(|p| p.exists())
+                    .unwrap_or_else(|| {
+                        home.join(".gemini")
+                            .join("antigravity")
+                            .join("brain")
+                            .join(&conv_id)
+                            .join(".system_generated")
+                            .join("logs")
+                            .join("transcript.jsonl")
+                    });
 
                 let (trans_title, trans_time) =
                     SummariesService::parse_transcript_step0(&brain_transcript);
@@ -190,11 +231,7 @@ impl TokenDataService {
         for c in &convs {
             let ws_short = if !c.workspace.trim().is_empty() {
                 let clean = c.workspace.trim_end_matches(['/', '\\']);
-                Path::new(clean)
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or(clean)
-                    .to_string()
+                clean.rsplit(['/', '\\']).next().unwrap_or(clean).to_string()
             } else {
                 "默认工作区".to_string()
             };
@@ -327,12 +364,12 @@ impl TokenDataService {
     ) -> Vec<TokenTrendPoint> {
         let today = Local::now().date_naive();
         let (start_date, end_date) = match preset {
-            "周" => (today - Duration::days(6), today),
-            "月" => (today - Duration::days(29), today),
-            "季度" => (today - Duration::days(89), today),
-            "半年" => (today - Duration::days(179), today),
-            "-1年" => (today - Duration::days(364), today),
-            "自定义" => {
+            "周" | "週" | "week" | "7d" => (today - Duration::days(6), today),
+            "月" | "month" | "30d" => (today - Duration::days(29), today),
+            "季度" | "quarter" | "90d" => (today - Duration::days(89), today),
+            "半年" | "halfYear" | "half_year" | "180d" => (today - Duration::days(179), today),
+            "-1年" | "1年" | "year" | "1year" | "365d" => (today - Duration::days(364), today),
+            "自定义" | "自訂" | "custom" => {
                 let s = custom_start
                     .and_then(|st| NaiveDate::parse_from_str(st, "%Y-%m-%d").ok())
                     .unwrap_or(today - Duration::days(29));
@@ -435,13 +472,13 @@ impl TokenDataService {
             .into_iter()
             .filter(|call| {
                 if let Some(dr) = date_range {
-                    if dr != "全部" && !dr.is_empty() {
+                    if dr != "全部" && dr != "all" && !dr.is_empty() {
                         if let Some(dt) = Local.timestamp_opt(call.timestamp_epoch, 0).single() {
-                            if dr == "今天" && dt.date_naive() != today {
+                            if (dr == "今天" || dr == "today") && dt.date_naive() != today {
                                 return false;
-                            } else if dr == "近7天" && (now - dt) > Duration::days(7) {
+                            } else if (dr == "近7天" || dr == "7d") && (now - dt) > Duration::days(7) {
                                 return false;
-                            } else if dr == "近30天" && (now - dt) > Duration::days(30) {
+                            } else if (dr == "近30天" || dr == "30d") && (now - dt) > Duration::days(30) {
                                 return false;
                             }
                         }
@@ -449,7 +486,7 @@ impl TokenDataService {
                 }
 
                 if let Some(mf) = model_filter {
-                    if mf != "全部模型" && !mf.is_empty() {
+                    if mf != "全部模型" && mf != "all" && !mf.is_empty() {
                         if !call.model.eq_ignore_ascii_case(mf) {
                             return false;
                         }
@@ -457,7 +494,7 @@ impl TokenDataService {
                 }
 
                 if let Some(wf) = ws_filter {
-                    if wf != "全部工作区" && !wf.is_empty() {
+                    if wf != "全部工作区" && wf != "全部工作區" && wf != "all" && !wf.is_empty() {
                         if !call.workspace.eq_ignore_ascii_case(wf) {
                             return false;
                         }
@@ -585,11 +622,7 @@ impl TokenDataService {
                     "默认工作区".to_string()
                 } else {
                     let clean = c.workspace.trim_end_matches(['/', '\\']);
-                    Path::new(clean)
-                        .file_name()
-                        .and_then(|n| n.to_str())
-                        .unwrap_or(clean)
-                        .to_string()
+                    clean.rsplit(['/', '\\']).next().unwrap_or(clean).to_string()
                 }
             })
             .collect();
@@ -605,6 +638,7 @@ impl TokenDataService {
         ws_filter: Option<&str>,
         search_query: Option<&str>,
         date_range: Option<&str>,
+        lang: Option<&str>,
     ) -> String {
         let paged = self.get_paged_logs(
             1,
@@ -616,7 +650,12 @@ impl TokenDataService {
         );
 
         let mut csv = String::from("\u{FEFF}"); // UTF-8 BOM
-        csv.push_str("时间,对话标题,项目工作区,模型,提示Tokens,补全Tokens,思考Tokens,总计Tokens,耗时(ms),预估费用,结算币种,会话ID\n");
+        let header = match lang.unwrap_or("zh-CN") {
+            "en" => "Time,Conversation Title,Workspace,Model,Prompt Tokens,Completion Tokens,Thinking Tokens,Total Tokens,Latency (ms),Estimated Cost,Currency,Conversation ID\n",
+            "zh-TW" => "時間,對話標題,專案工作區,模型,提示Tokens,補全Tokens,思考Tokens,總計Tokens,耗時(ms),預估費用,結算幣種,會話ID\n",
+            _ => "时间,对话标题,项目工作区,模型,提示Tokens,补全Tokens,思考Tokens,总计Tokens,耗时(ms),预估费用,结算币种,会话ID\n",
+        };
+        csv.push_str(header);
 
         for item in paged.items {
             let safe_title = item.title.replace('"', "\"\"");

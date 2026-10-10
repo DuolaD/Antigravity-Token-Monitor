@@ -86,12 +86,14 @@ pub fn export_logs_csv(
     ws_filter: Option<String>,
     search_query: Option<String>,
     date_range: Option<String>,
+    lang: Option<String>,
 ) -> String {
     state.data_service.export_logs_csv(
         model_filter.as_deref(),
         ws_filter.as_deref(),
         search_query.as_deref(),
         date_range.as_deref(),
+        lang.as_deref(),
     )
 }
 

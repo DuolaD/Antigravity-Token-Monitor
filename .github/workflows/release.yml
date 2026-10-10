@@ -192,6 +192,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Download all built artifacts
         uses: actions/download-artifact@v4
         with:
@@ -213,6 +218,12 @@ jobs:
         run: |
           TAG="${{ needs.prepare.outputs.tag }}"
 
+          # Ensure all remote tags are fetched for accurate commit range calculation
+          git fetch --tags --force 2>/dev/null || true
+
+          # Generate release notes (or append Full Changelog to user-provided notes)
+          bun scripts/generate-release-notes.mjs "$TAG" release-notes.md
+
           ASSET_ARGS=()
           for file in release-assets/*; do
             if [ -f "$file" ]; then
@@ -223,11 +234,12 @@ jobs:
           echo "Publishing release for tag: $TAG with ${#ASSET_ARGS[@]} assets"
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists, uploading assets..."
+            echo "Release $TAG already exists, updating release notes and uploading assets..."
+            gh release edit "$TAG" --notes-file release-notes.md
             gh release upload "$TAG" "${ASSET_ARGS[@]}" --clobber
           else
             echo "Creating new release $TAG..."
             gh release create "$TAG" "${ASSET_ARGS[@]}" \
               --target "${{ github.sha }}" \
-              --generate-notes
+              --notes-file release-notes.md
           fi

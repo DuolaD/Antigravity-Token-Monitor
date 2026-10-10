@@ -110,7 +110,7 @@
               <th class="py-3 px-3 w-24 text-right">{{ t('logs.table.completionTokens') }}</th>
               <th class="py-3 px-3 w-24 text-right text-amber-600 dark:text-amber-400">{{ t('logs.table.thinkingTokens') }}</th>
               <th class="py-3 px-3 w-28 text-right font-bold text-gray-700 dark:text-gray-300">{{ t('logs.table.totalTokens') }}</th>
-              <th class="py-3 px-3 w-20 text-right">{{ t('logs.table.latency') }}</th>
+              <th class="py-3 px-3 w-24 text-right">{{ t('logs.table.latencySpeed') }}</th>
               <th class="py-3 px-3.5 w-24 text-right">{{ t('logs.table.cost') }}</th>
               <th class="py-3 px-2 w-12 text-center">{{ t('logs.table.details') }}</th>
             </tr>
@@ -168,9 +168,12 @@
                 {{ (item.prompt_tokens + item.output_tokens).toLocaleString() }}
               </td>
 
-              <!-- Latency -->
-              <td class="py-2.5 px-3 text-right text-gray-500 dark:text-gray-400">
-                {{ (item.latency_ms / 1000).toFixed(1) }}s
+              <!-- Latency & Speed -->
+              <td class="py-2.5 px-3 text-right">
+                <div class="text-gray-600 dark:text-gray-300 font-mono">{{ (item.latency_ms / 1000).toFixed(1) }}s</div>
+                <div v-if="item.speed_tokens_per_sec > 0" class="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-medium">
+                  {{ item.speed_tokens_per_sec.toFixed(0) }} tok/s
+                </div>
               </td>
 
               <!-- Cost -->
@@ -277,7 +280,11 @@
           </div>
           <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
             <span class="text-gray-500 dark:text-gray-400">{{ t('logs.modal.latency') }}</span>
-            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.latency_ms }} ms</span>
+            <span class="text-gray-800 dark:text-gray-200">{{ activeDetailItem.latency_ms }} ms ({{ (activeDetailItem.latency_ms / 1000).toFixed(2) }}s)</span>
+          </div>
+          <div v-if="activeDetailItem.speed_tokens_per_sec > 0" class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-800/60">
+            <span class="text-amber-600 dark:text-amber-400 font-medium">{{ t('logs.modal.speed') }}</span>
+            <span class="text-amber-600 dark:text-amber-400 font-bold">{{ activeDetailItem.speed_tokens_per_sec.toFixed(1) }} tok/s</span>
           </div>
           <div class="flex justify-between py-1">
             <span class="text-emerald-600 dark:text-emerald-400">{{ t('logs.modal.cost') }}</span>

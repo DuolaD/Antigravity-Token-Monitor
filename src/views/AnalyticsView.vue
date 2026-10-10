@@ -73,12 +73,13 @@
               <th class="py-3 px-4 text-right text-amber-600 dark:text-amber-400">{{ t('analytics.table.thinkingRatio') }}</th>
               <th class="py-3 px-4 text-right font-bold text-gray-700 dark:text-gray-300">{{ t('analytics.table.dailyTotal') }}</th>
               <th class="py-3 px-4 text-right">{{ t('analytics.table.calls') }}</th>
+              <th class="py-3 px-4 text-right">{{ t('analytics.table.avgSpeed') }}</th>
               <th class="py-3 px-4 text-right text-emerald-600 dark:text-emerald-400">{{ t('analytics.table.cost') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800/60 font-mono">
             <tr v-if="dailyStats.length === 0">
-              <td colspan="8" class="py-12 text-center text-gray-400 dark:text-gray-500">
+              <td colspan="9" class="py-12 text-center text-gray-400 dark:text-gray-500">
                 {{ t('analytics.table.empty') }}
               </td>
             </tr>
@@ -107,6 +108,9 @@
               </td>
               <td class="py-2.5 px-4 text-right text-gray-700 dark:text-gray-300">
                 {{ d.calls }} {{ t('analytics.table.callsUnit') }}
+              </td>
+              <td class="py-2.5 px-4 text-right text-purple-600 dark:text-purple-400 font-semibold">
+                {{ d.avg_speed > 0 ? `${d.avg_speed.toFixed(1)} tok/s` : '-' }}
               </td>
               <td class="py-2.5 px-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">
                 {{ currencySymbol }}{{ d.cost.toFixed(4) }}

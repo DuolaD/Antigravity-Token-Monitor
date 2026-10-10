@@ -31,6 +31,7 @@ export interface TokenCallItem {
   thinking_tokens: number;
   candidate_tokens: number;
   latency_ms: number;
+  speed_tokens_per_sec: number;
   cost: number;
   currency: string;
   step_index: number | null;
@@ -42,6 +43,7 @@ export interface ModelUsageStat {
   calls: number;
   cost: number;
   percentage: number;
+  avg_speed: number;
 }
 
 export interface WorkspaceUsageStat {
@@ -63,6 +65,8 @@ export interface OverviewStats {
   total_conversations: number;
   total_cost: number;
   avg_latency_seconds: number;
+  avg_speed_tokens_per_sec: number;
+  peak_speed_tokens_per_sec: number;
   currency: string;
   currency_symbol: string;
 
@@ -87,6 +91,7 @@ export interface TokenTrendPoint {
   total_tokens: number;
   calls: number;
   cost: number;
+  avg_speed: number;
 }
 
 export interface DailyTokenStat {
@@ -98,6 +103,7 @@ export interface DailyTokenStat {
   total_tokens: number;
   calls: number;
   cost: number;
+  avg_speed: number;
 }
 
 export interface PagedLogsResult {

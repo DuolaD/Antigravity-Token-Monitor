@@ -110,6 +110,10 @@
           <span>{{ t('chart.thinking') }}</span>
           <span>{{ activeData.thinking_tokens.toLocaleString() }}</span>
         </div>
+        <div v-if="activeData.avg_speed > 0" class="flex justify-between items-center text-purple-600 dark:text-purple-400">
+          <span>{{ t('chart.avgSpeed') }}</span>
+          <span>{{ activeData.avg_speed.toFixed(1) }} tok/s</span>
+        </div>
         <div class="flex justify-between items-center text-emerald-600 dark:text-emerald-400 pt-1 border-t border-gray-100 dark:border-gray-800/80 font-semibold">
           <span>{{ t('chart.estimatedCost') }}</span>
           <span>{{ currencySymbol }}{{ activeData.cost.toFixed(4) }}</span>

@@ -75,6 +75,8 @@ pub struct TokenCallItem {
     pub thinking_tokens: i64,
     pub candidate_tokens: i64,
     pub latency_ms: i64,
+    #[serde(default)]
+    pub speed_tokens_per_sec: f64,
     pub cost: f64,
     pub currency: String,
     pub step_index: Option<i32>,
@@ -106,6 +108,8 @@ pub struct ModelUsageStat {
     pub calls: usize,
     pub cost: f64,
     pub percentage: f64,
+    #[serde(default)]
+    pub avg_speed: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -129,6 +133,10 @@ pub struct OverviewStats {
     pub total_conversations: usize,
     pub total_cost: f64,
     pub avg_latency_seconds: f64,
+    #[serde(default)]
+    pub avg_speed_tokens_per_sec: f64,
+    #[serde(default)]
+    pub peak_speed_tokens_per_sec: f64,
     pub currency: String,
     pub currency_symbol: String,
 
@@ -154,6 +162,8 @@ pub struct TokenTrendPoint {
     pub total_tokens: i64,
     pub calls: usize,
     pub cost: f64,
+    #[serde(default)]
+    pub avg_speed: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -166,6 +176,8 @@ pub struct DailyTokenStat {
     pub total_tokens: i64,
     pub calls: usize,
     pub cost: f64,
+    #[serde(default)]
+    pub avg_speed: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -83,12 +83,15 @@ impl DatabaseService {
 
                 let sub1_fields = ProtobufReader::parse(f1_bytes);
                 let mut f4_data = None;
+                let mut f11_data = None;
                 let mut model_name = "unknown".to_string();
                 let mut last_step_index: Option<i32> = None;
 
                 for f in &sub1_fields {
                     if f.field_number == 4 && !f.data.is_empty() {
                         f4_data = Some(f.data);
+                    } else if f.field_number == 11 && !f.data.is_empty() {
+                        f11_data = Some(f.data);
                     } else if f.field_number == 19 && !f.data.is_empty() {
                         if let Ok(name) = std::str::from_utf8(f.data) {
                             model_name = name.to_string();
@@ -118,14 +121,38 @@ impl DatabaseService {
                         }
                     }
 
-                    let prompt_tokens = varints.get(&5).copied().unwrap_or(0) as i64;
+                    let uncached_prompt = varints.get(&2).copied().unwrap_or(0) as i64;
+                    let cached_prompt = varints.get(&5).copied().unwrap_or(0) as i64;
+                    let prompt_tokens = uncached_prompt + cached_prompt;
+
                     let total_out = varints.get(&3).copied().unwrap_or(0) as i64;
                     let thinking_tokens = varints.get(&9).copied().unwrap_or(0) as i64;
                     let candidate_tokens = varints
                         .get(&10)
                         .map(|&c| c as i64)
                         .unwrap_or(total_out - thinking_tokens);
-                    let latency_ms = varints.get(&2).copied().unwrap_or(0) as i64;
+
+                    // Decode real latency from field 11 (google.protobuf.Duration: seconds=1, nanos=2)
+                    let mut latency_ms = 0i64;
+                    if let Some(f11_bytes) = f11_data {
+                        let dur_fields = ProtobufReader::parse(f11_bytes);
+                        let mut sec = 0i64;
+                        let mut nanos = 0i64;
+                        for df in &dur_fields {
+                            if df.field_number == 1 && df.wire_type == 0 {
+                                sec = df.varint as i64;
+                            } else if df.field_number == 2 && df.wire_type == 0 {
+                                nanos = df.varint as i64;
+                            }
+                        }
+                        latency_ms = sec * 1000 + nanos / 1_000_000;
+                    }
+
+                    let speed_tokens_per_sec = if latency_ms > 0 && total_out > 0 {
+                        ((total_out as f64 / (latency_ms as f64 / 1000.0)) * 10.0).round() / 10.0
+                    } else {
+                        0.0
+                    };
 
                     let (cost, currency) =
                         pricing_service.calculate_cost(prompt_tokens, total_out, &model_name);
@@ -159,6 +186,7 @@ impl DatabaseService {
                         thinking_tokens,
                         candidate_tokens,
                         latency_ms,
+                        speed_tokens_per_sec,
                         cost: (cost * 100000.0).round() / 100000.0,
                         currency,
                         step_index: last_step_index,

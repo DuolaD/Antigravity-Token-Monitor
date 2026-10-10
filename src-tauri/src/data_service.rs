@@ -225,7 +225,12 @@ impl TokenDataService {
         let mut today_calls = 0usize;
         let mut today_cost = 0.0f64;
 
-        let mut model_dict: HashMap<String, (i64, usize, f64)> = HashMap::new();
+        let mut grand_output_tokens = 0i64;
+        let mut grand_latency_ms = 0i64;
+        let mut peak_speed = 0.0f64;
+
+        // Tuple: (tokens, calls, cost, output_tokens, latency_ms)
+        let mut model_dict: HashMap<String, (i64, usize, f64, i64, i64)> = HashMap::new();
         let mut ws_dict: HashMap<String, (i64, usize, f64)> = HashMap::new();
 
         for c in &convs {
@@ -253,6 +258,14 @@ impl TokenDataService {
                 total_cost += cost;
                 total_latency += call.latency_ms;
 
+                if call.latency_ms > 0 && call.output_tokens > 0 {
+                    grand_output_tokens += call.output_tokens;
+                    grand_latency_ms += call.latency_ms;
+                    if call.speed_tokens_per_sec > peak_speed {
+                        peak_speed = call.speed_tokens_per_sec;
+                    }
+                }
+
                 if let Some(call_date) = Local.timestamp_opt(call.timestamp_epoch, 0).single() {
                     if call_date.date_naive() == today {
                         today_prompt += p;
@@ -263,10 +276,12 @@ impl TokenDataService {
                     }
                 }
 
-                let m_entry = model_dict.entry(call.model.clone()).or_insert((0, 0, 0.0));
+                let m_entry = model_dict.entry(call.model.clone()).or_insert((0, 0, 0.0, 0, 0));
                 m_entry.0 += tot;
                 m_entry.1 += 1;
                 m_entry.2 += cost;
+                m_entry.3 += o;
+                m_entry.4 += call.latency_ms;
 
                 let w_entry = ws_dict.entry(ws_short.clone()).or_insert((0, 0, 0.0));
                 w_entry.0 += tot;
@@ -282,11 +297,22 @@ impl TokenDataService {
             0.0
         };
 
+        let avg_speed_tokens_per_sec = if grand_latency_ms > 0 {
+            ((grand_output_tokens as f64 / (grand_latency_ms as f64 / 1000.0)) * 10.0).round() / 10.0
+        } else {
+            0.0
+        };
+
         let mut top_models: Vec<ModelUsageStat> = model_dict
             .into_iter()
-            .map(|(model, (tokens, calls, cost))| {
+            .map(|(model, (tokens, calls, cost, m_out, m_lat))| {
                 let pct = if grand_total > 0 {
                     (tokens as f64 / grand_total as f64) * 100.0
+                } else {
+                    0.0
+                };
+                let avg_speed = if m_lat > 0 {
+                    ((m_out as f64 / (m_lat as f64 / 1000.0)) * 10.0).round() / 10.0
                 } else {
                     0.0
                 };
@@ -296,6 +322,7 @@ impl TokenDataService {
                     calls,
                     cost: (cost * 10000.0).round() / 10000.0,
                     percentage: (pct * 10.0).round() / 10.0,
+                    avg_speed,
                 }
             })
             .collect();
@@ -341,6 +368,8 @@ impl TokenDataService {
             total_conversations: convs.len(),
             total_cost: (total_cost * 10000.0).round() / 10000.0,
             avg_latency_seconds: (avg_lat * 100.0).round() / 100.0,
+            avg_speed_tokens_per_sec,
+            peak_speed_tokens_per_sec: (peak_speed * 10.0).round() / 10.0,
             currency,
             currency_symbol,
 
@@ -396,22 +425,27 @@ impl TokenDataService {
             }
         };
 
-        let mut date_map: HashMap<NaiveDate, TokenTrendPoint> = HashMap::new();
+        let mut date_map: HashMap<NaiveDate, (TokenTrendPoint, i64, i64)> = HashMap::new();
         let mut curr = start_date;
         while curr <= end_date {
             date_map.insert(
                 curr,
-                TokenTrendPoint {
-                    date: curr.format("%Y-%m-%d").to_string(),
-                    date_label: curr.format("%m/%d").to_string(),
-                    full_date_label: curr.format("%Y年%m月%d日").to_string(),
-                    prompt_tokens: 0,
-                    output_tokens: 0,
-                    thinking_tokens: 0,
-                    total_tokens: 0,
-                    calls: 0,
-                    cost: 0.0,
-                },
+                (
+                    TokenTrendPoint {
+                        date: curr.format("%Y-%m-%d").to_string(),
+                        date_label: curr.format("%m/%d").to_string(),
+                        full_date_label: curr.format("%Y年%m月%d日").to_string(),
+                        prompt_tokens: 0,
+                        output_tokens: 0,
+                        thinking_tokens: 0,
+                        total_tokens: 0,
+                        calls: 0,
+                        cost: 0.0,
+                        avg_speed: 0.0,
+                    },
+                    0, // total output tokens
+                    0, // total latency ms
+                ),
             );
             curr += Duration::days(1);
         }
@@ -422,12 +456,14 @@ impl TokenDataService {
                 if let Some(dt) = Local.timestamp_opt(call.timestamp_epoch, 0).single() {
                     let call_date = dt.date_naive();
                     if call_date >= start_date && call_date <= end_date {
-                        if let Some(point) = date_map.get_mut(&call_date) {
+                        if let Some((point, out_tok, lat_ms)) = date_map.get_mut(&call_date) {
                             point.prompt_tokens += call.prompt_tokens;
                             point.output_tokens += call.output_tokens;
                             point.thinking_tokens += call.thinking_tokens;
                             point.total_tokens += call.prompt_tokens + call.output_tokens;
                             point.calls += 1;
+                            *out_tok += call.output_tokens;
+                            *lat_ms += call.latency_ms;
                             let (cost, _) = self.pricing_service.calculate_cost(
                                 call.prompt_tokens,
                                 call.output_tokens,
@@ -443,8 +479,13 @@ impl TokenDataService {
         let mut list: Vec<_> = date_map.into_iter().collect();
         list.sort_by_key(|(d, _)| *d);
         list.into_iter()
-            .map(|(_, mut p)| {
+            .map(|(_, (mut p, out_tok, lat))| {
                 p.cost = (p.cost * 10000.0).round() / 10000.0;
+                p.avg_speed = if lat > 0 && out_tok > 0 {
+                    ((out_tok as f64 / (lat as f64 / 1000.0)) * 10.0).round() / 10.0
+                } else {
+                    0.0
+                };
                 p
             })
             .collect()
@@ -557,7 +598,8 @@ impl TokenDataService {
     }
 
     pub fn get_daily_stats(&self) -> Vec<DailyTokenStat> {
-        let mut daily_dict: HashMap<String, DailyTokenStat> = HashMap::new();
+        // Map: date_key -> (DailyTokenStat, total_output_tokens, total_latency_ms)
+        let mut daily_dict: HashMap<String, (DailyTokenStat, i64, i64)> = HashMap::new();
         let convs = self.conversations.read().unwrap();
 
         for c in convs.values() {
@@ -568,42 +610,56 @@ impl TokenDataService {
                     "未知日期".to_string()
                 };
 
-                let entry = daily_dict.entry(date_key.clone()).or_insert_with(|| DailyTokenStat {
-                    date: date_key,
-                    prompt_tokens: 0,
-                    output_tokens: 0,
-                    thinking_tokens: 0,
-                    thinking_ratio: 0.0,
-                    total_tokens: 0,
-                    calls: 0,
-                    cost: 0.0,
-                });
+                let entry = daily_dict.entry(date_key.clone()).or_insert_with(|| (
+                    DailyTokenStat {
+                        date: date_key,
+                        prompt_tokens: 0,
+                        output_tokens: 0,
+                        thinking_tokens: 0,
+                        thinking_ratio: 0.0,
+                        total_tokens: 0,
+                        calls: 0,
+                        cost: 0.0,
+                        avg_speed: 0.0,
+                    },
+                    0,
+                    0,
+                ));
 
-                entry.prompt_tokens += call.prompt_tokens;
-                entry.output_tokens += call.output_tokens;
-                entry.thinking_tokens += call.thinking_tokens;
-                entry.total_tokens += call.prompt_tokens + call.output_tokens;
-                entry.calls += 1;
+                entry.0.prompt_tokens += call.prompt_tokens;
+                entry.0.output_tokens += call.output_tokens;
+                entry.0.thinking_tokens += call.thinking_tokens;
+                entry.0.total_tokens += call.prompt_tokens + call.output_tokens;
+                entry.0.calls += 1;
+                entry.1 += call.output_tokens;
+                entry.2 += call.latency_ms;
                 let (cost, _) = self.pricing_service.calculate_cost(
                     call.prompt_tokens,
                     call.output_tokens,
                     &call.model,
                 );
-                entry.cost += cost;
+                entry.0.cost += cost;
             }
         }
 
-        let mut list: Vec<DailyTokenStat> = daily_dict.into_values().collect();
-        list.sort_by(|a, b| b.date.cmp(&a.date));
+        let mut list: Vec<(DailyTokenStat, i64, i64)> = daily_dict.into_values().collect();
+        list.sort_by(|a, b| b.0.date.cmp(&a.0.date));
 
-        for item in &mut list {
+        let mut result = Vec::new();
+        for (mut item, out_tok, lat) in list {
             if item.output_tokens > 0 {
                 item.thinking_ratio = ((item.thinking_tokens as f64 / item.output_tokens as f64) * 1000.0).round() / 10.0;
             }
             item.cost = (item.cost * 10000.0).round() / 10000.0;
+            item.avg_speed = if lat > 0 && out_tok > 0 {
+                ((out_tok as f64 / (lat as f64 / 1000.0)) * 10.0).round() / 10.0
+            } else {
+                0.0
+            };
+            result.push(item);
         }
 
-        list
+        result
     }
 
     pub fn get_filter_options(&self) -> FilterOptions {

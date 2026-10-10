@@ -75,9 +75,12 @@ mod tests {
         println!("Total calls: {}", stats.total_calls);
         println!("Total conversations: {}", stats.total_conversations);
         println!("Total cost: {}{}", stats.currency_symbol, stats.total_cost);
+        println!("Avg Latency seconds: {} s", stats.avg_latency_seconds);
+        println!("Avg Speed: {} tok/s", stats.avg_speed_tokens_per_sec);
+        println!("Peak Speed: {} tok/s", stats.peak_speed_tokens_per_sec);
         println!("Top models count: {}", stats.top_models.len());
         for m in &stats.top_models {
-            println!("  - {}: {} tokens ({} calls, {}%)", m.model, m.tokens, m.calls, m.percentage);
+            println!("  - {}: {} tokens ({} calls, {}%, avg_speed: {} tok/s)", m.model, m.tokens, m.calls, m.percentage, m.avg_speed);
         }
         println!("Top workspaces count: {}", stats.top_workspaces.len());
         for w in &stats.top_workspaces {
@@ -85,6 +88,8 @@ mod tests {
         }
         assert!(!data.monitored_directories.is_empty(), "Should discover local antigravity directories");
         assert!(stats.total_calls > 0, "Should successfully parse local conversation calls");
+        assert!(stats.avg_speed_tokens_per_sec > 0.0, "Avg speed should be calculated and > 0");
+        assert!(stats.peak_speed_tokens_per_sec > 0.0, "Peak speed should be calculated and > 0");
     }
 
     #[test]

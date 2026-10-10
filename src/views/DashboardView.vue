@@ -119,18 +119,24 @@
         </div>
       </div>
 
-      <!-- Card 4: Avg Latency -->
+      <!-- Card 4: Avg Speed & Latency -->
       <div class="card-glass p-4 rounded-xl space-y-3">
-        <div class="flex items-center gap-2 text-pink-600 dark:text-pink-400">
-          <Timer class="w-4 h-4" />
-          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ t('dashboard.cards.avgLatency') }}</span>
+        <div class="flex items-center gap-2 text-amber-500 dark:text-amber-400">
+          <Zap class="w-4 h-4" />
+          <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ t('dashboard.cards.avgSpeed') }}</span>
         </div>
         <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-baseline">
-          <RollingNumber :value="stats?.avg_latency_seconds || 0" suffix=" s" :decimals="2" />
+          <RollingNumber :value="stats?.avg_speed_tokens_per_sec || 0" suffix=" tok/s" :decimals="1" />
         </div>
         <div class="pt-2 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span>{{ t('dashboard.cards.perTurnLatency') }}</span>
-          <span class="text-gray-700 dark:text-gray-300">{{ t('dashboard.cards.avgSecResponse') }}</span>
+          <span class="flex items-center gap-1">
+            <span>{{ t('dashboard.cards.avgLatencyShort') }}:</span>
+            <span class="font-mono text-gray-700 dark:text-gray-300 font-medium">{{ (stats?.avg_latency_seconds || 0).toFixed(2) }}s</span>
+          </span>
+          <span class="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+            <span>{{ t('dashboard.cards.peakSpeedShort') }}:</span>
+            <span class="font-mono font-semibold text-amber-600 dark:text-amber-400">{{ (stats?.peak_speed_tokens_per_sec || 0).toFixed(1) }}</span>
+          </span>
         </div>
       </div>
     </div>
@@ -189,6 +195,12 @@
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-gray-800 dark:text-gray-200 font-mono">{{ m.model }}</span>
+                <span
+                  v-if="m.avg_speed > 0"
+                  class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono font-medium"
+                >
+                  {{ m.avg_speed.toFixed(1) }} tok/s
+                </span>
                 <span class="text-[10px] text-gray-400 dark:text-gray-500">
                   {{ t('dashboard.rankings.callsCount', { n: m.calls }) }}
                 </span>
@@ -266,6 +278,7 @@ import {
   Cpu,
   MessageSquareCode,
   Timer,
+  Zap,
   TrendingUp,
   FolderGit2,
   ChevronDown,

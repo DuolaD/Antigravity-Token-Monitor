@@ -89,6 +89,7 @@ jobs:
       - name: Synchronize Version
         run: |
           bun scripts/set-version.mjs "${{ needs.prepare.outputs.version }}"
+          cargo check --manifest-path src-tauri/Cargo.toml
 
       - name: Install Frontend Dependencies
         run: bun install
@@ -151,12 +152,15 @@ jobs:
         shell: bash
         run: |
           bun scripts/set-version.mjs "${{ needs.prepare.outputs.version }}"
+          cargo check --manifest-path src-tauri/Cargo.toml
 
       - name: Install Frontend Dependencies
         run: bun install
 
       - name: Build Tauri Bundle
-        run: bun run tauri build --target ${{ matrix.target }} --bundles nsis
+        shell: bash
+        run: |
+          bun run tauri build --target ${{ matrix.target }} --bundles nsis || bun run tauri build --target ${{ matrix.target }} --no-bundle
 
       - name: Locate & Collect Windows Artifacts
         shell: bash

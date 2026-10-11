@@ -87,6 +87,18 @@ export function applyVersion(rootDir, newVersion) {
     fs.writeFileSync(cargoTomlPath, updated, "utf-8");
     console.log(`[set-version] Updated Cargo.toml -> ${newVersion}`);
   }
+
+  // 4. src-tauri/Cargo.lock (keep lockfile package version perfectly aligned)
+  const cargoLockPath = path.join(rootDir, "src-tauri", "Cargo.lock");
+  if (fs.existsSync(cargoLockPath)) {
+    const lock = fs.readFileSync(cargoLockPath, "utf-8");
+    const updatedLock = lock.replace(
+      /(name = "antigravity-tokens"\r?\nversion = )"[^"]+"/,
+      `$1"${newVersion}"`
+    );
+    fs.writeFileSync(cargoLockPath, updatedLock, "utf-8");
+    console.log(`[set-version] Updated Cargo.lock -> ${newVersion}`);
+  }
 }
 
 // CLI Execution

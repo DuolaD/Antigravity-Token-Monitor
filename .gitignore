@@ -30,3 +30,4 @@ src-tauri/gen/schemas
 artifacts/
 release-assets/
 build-output/
+*.tsbuildinfo

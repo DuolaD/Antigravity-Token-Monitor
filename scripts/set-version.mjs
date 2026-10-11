@@ -93,7 +93,7 @@ export function applyVersion(rootDir, newVersion) {
   if (fs.existsSync(cargoLockPath)) {
     const lock = fs.readFileSync(cargoLockPath, "utf-8");
     const updatedLock = lock.replace(
-      /(name = "antigravity-tokens"\r?\nversion = )"[^"]+"/,
+      /(name\s*=\s*"antigravity-tokens"\r?\nversion\s*=\s*)"[^"]+"/,
       `$1"${newVersion}"`
     );
     fs.writeFileSync(cargoLockPath, updatedLock, "utf-8");
